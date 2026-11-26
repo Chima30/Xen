@@ -6,7 +6,8 @@ export class HttpError extends Error {
 
 /** Short, readable error detail: API error bodies are kept, HTML error pages are reduced to their title. */
 export function errorBodySummary(body: string): string {
-  if (/^\s*(<!doctype html|<html)/i.test(body)) {
+  // Any HTML page (some start with inline CSS before the <html> tag) is reduced to its title.
+  if (/<!doctype html|<html[\s>]|<head[\s>]|<body[\s>]|<\/(?:div|style|script)>/i.test(body.slice(0, 20000)) || /^\s*[.:#][\w-]+[^{]*\{[^}]*:/.test(body)) {
     const title = body.match(/<title[^>]*>([^<]{1,120})<\/title>/i)?.[1]?.trim();
     return title ? `HTML page "${title}"` : 'HTML page';
   }

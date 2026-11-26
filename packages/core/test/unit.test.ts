@@ -268,6 +268,7 @@ describe('http error messages', () => {
     const { errorBodySummary } = await import('../src/http');
     expect(errorBodySummary('<!DOCTYPE html><html><head><title>Just a moment...</title></head><body>x</body></html>')).toBe('HTML page "Just a moment..."');
     expect(errorBodySummary('{"error":{"message":"quota exceeded"}}')).toBe('{"error":{"message":"quota exceeded"}}');
+    expect(errorBodySummary('.theme-light,:root{--rem360:22.5rem}</style><title>Blocked</title>')).toBe('HTML page "Blocked"');
   });
 });
 
