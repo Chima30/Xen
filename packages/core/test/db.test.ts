@@ -76,6 +76,16 @@ describe('job queue', () => {
     j = await db.query(`select status from job_queue where id=$1`, [id]);
     expect(j.rows[0]).toMatchObject({ status: 'dead' });
   });
+  it('only service_role may call the queue and usage functions', async () => {
+    await db.exec('set role service_role');
+    try {
+      await db.query(`select id from lease_jobs('w', 1, 60, array['none'])`);
+      await db.query(`select bump_api_usage('test', true, 1, null)`);
+    } finally {
+      await db.exec('reset role');
+    }
+    await expect(as(A, () => db.query(`select id from lease_jobs('w', 1, 60, array['none'])`))).rejects.toThrow(/permission denied/);
+  });
   it('idempotency key prevents duplicate jobs', async () => {
     await expect(db.exec(`insert into job_queue (kind, idempotency_key) values ('test', 'k1')`)).rejects.toThrow();
   });

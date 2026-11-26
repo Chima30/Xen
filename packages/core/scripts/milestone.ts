@@ -59,6 +59,7 @@ async function main() {
   step(3, 'Retrieve sources + Gemini structured extraction + verification + scoring');
   const jobs = await repo.db.from('job_queue').select('id, payload').eq('kind', 'analyze').eq('status', 'pending').order('priority', { ascending: false }).limit(MAX_ANALYZE);
   const stored: string[] = [];
+  let analyzedPayload: Parameters<typeof analyzeAnnouncement>[1] | null = null;
   for (const j of jobs.data ?? []) {
     const p = j.payload as Parameters<typeof analyzeAnnouncement>[1];
     try {
@@ -66,10 +67,15 @@ async function main() {
       await repo.complete(j.id);
       console.log(`     ${r.status.padEnd(10)} ${p.url}`);
       for (const o of r.opportunities) stored.push(o.id);
+      if (r.opportunities.length && !analyzedPayload) analyzedPayload = p;
       if (r.status === 'skipped_budget') { fail('Gemini daily budget reached'); break; }
     } catch (e) {
-      await repo.fail(j.id, String(e));
-      console.log(`     error      ${p.url}: ${(e as Error).message.slice(0, 160)}`);
+      console.log(`     error      ${p.url}: ${(e as Error).message.slice(0, 300)}`);
+      try {
+        await repo.fail(j.id, String(e));
+      } catch (fe) {
+        console.log(`     (could not record the failure: ${(fe as Error).message})`);
+      }
     }
   }
   if (!stored.length) {
@@ -109,9 +115,9 @@ async function main() {
   const again = await repo.db.from('job_queue').select('id', { count: 'exact', head: true }).eq('kind', 'analyze').eq('status', 'pending');
   let resent = 0;
   for (const id of stored) resent += (await notifyOpportunity(d, id, { ignoreQuietHours: true })).sent;
-  // Re-analyzing an already-analyzed announcement must update, not duplicate.
-  const firstJob = jobs.data?.[0];
-  if (firstJob) await analyzeAnnouncement(d, firstJob.payload as Parameters<typeof analyzeAnnouncement>[1]).catch(() => undefined);
+  // Re-analyzing an announcement that was already analyzed successfully must update, not duplicate.
+  // (A job that failed above, e.g. a 403, has never been analyzed, so it is not a valid re-check.)
+  if (analyzedPayload) await analyzeAnnouncement(d, analyzedPayload).catch(() => undefined);
   const after = await counts(repo);
   console.log(`     ingest#2: new=${ing2.newItems} changed=${ing2.changed} queued=${ing2.queued}; pending analyze jobs=${again.count}`);
   console.log(`     opportunities ${mid.opportunities} → ${after.opportunities}; notifications ${mid.notifications} → ${after.notifications}; re-sent alerts=${resent}`);

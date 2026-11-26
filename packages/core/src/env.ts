@@ -70,7 +70,8 @@ export function integrationStatus(env: ServerEnv): Record<string, IntegrationSta
   return {
     gemini: 'configured',
     tavily: env.TAVILY_API_KEY ? 'configured' : 'unconfigured',
-    telegram: env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_WEBHOOK_SECRET ? 'configured' : 'unconfigured',
+    telegram: env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_CHAT_ID ? 'configured' : 'unconfigured',
+    telegram_webhook: env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_WEBHOOK_SECRET ? 'configured' : 'unconfigured',
     github: env.GITHUB_TOKEN ? 'configured' : 'unconfigured',
     firecrawl: !env.FEATURE_FIRECRAWL ? 'disabled' : env.FIRECRAWL_API_KEY ? 'configured' : 'unconfigured',
     gemini_grounding: env.FEATURE_GEMINI_GROUNDING ? 'configured' : 'disabled',
