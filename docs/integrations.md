@@ -16,7 +16,7 @@ Status words mean exactly this:
 | RSS / Atom (blogs, Medium `/feed/@user`, Mirror, Substack) | Implemented | Public | Cursor = newest published date |
 | Reddit public JSON | Implemented, **paused 2026-11-26** | Public | Live runs got HTTP 403: Reddit blocks unauthenticated requests from Vercel/Cloudflare server IPs. Needs a Reddit OAuth (script) app to resume |
 | GitHub releases | Implemented | Optional token | 60 req/h unauthenticated |
-| DefiLlama protocols | Implemented, **paused by default** | Public | The response is several MB, too heavy for the Workers Free CPU limit; run it from the Vercel runner |
+| DefiLlama protocols | **Live-verified 2026-11-26** (resumed; runs on the Vercel runner) | Public | Several-MB response, so it only runs via PIPELINE_RUNNER_URL. First live run: 40 new protocols fetched in 26 s, 2 queued for analysis. Every 6 h |
 | Telegram Bot API | **Live-verified 2026-11-26**: alerts (2 sent, re-send suppressed) and webhook commands (`/status` answered via the Cloudflare Worker) | Bot token | Webhook with secret header, idempotent updates |
 | Telegram channels (reading) | Unsupported | — | Bots only see channels where they are an admin |
 | Discord | Unsupported (not yet implemented) | Bot token + invite | Requires the bot to be invited with read permission |
