@@ -1,0 +1,32 @@
+name = "xen-worker"
+main = "src/index.ts"
+compatibility_date = "2026-11-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Cloudflare cron triggers run in UTC. Africa/Lagos = UTC+1 (no DST).
+# Free plan allows 5 cron triggers per account — these use all 5.
+[triggers]
+crons = [
+  "*/15 * * * *",  # pipeline tick (sources are individually rate-limited by scan_interval_minutes)
+  "5 * * * *",     # hourly: reminders, expiry, nightly purge at 03:05 UTC
+  "0 7 * * *",     # 08:00 WAT morning briefing
+  "0 17 * * *",    # 18:00 WAT evening summary
+  "0 18 * * SUN",  # 19:00 WAT Sunday weekly report
+]
+
+[vars]
+GEMINI_MODEL = "gemini-3.5-flash-lite"
+DEFAULT_TIMEZONE = "Africa/Lagos"
+FEATURE_GEMINI_GROUNDING = "false"
+FEATURE_FIRECRAWL = "false"
+FEATURE_X = "false"
+FEATURE_DISCORD = "false"
+FEATURE_REDDIT = "true"
+BUDGET_TAVILY_DAILY = "30"
+BUDGET_GEMINI_DAILY = "200"
+# PIPELINE_RUNNER_URL = "https://<your-app>.vercel.app/api/pipeline/tick"
+
+# Secrets (set with `wrangler secret put NAME`, never here):
+#   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, GEMINI_API_KEY, CRON_SECRET,
+#   TAVILY_API_KEY, TELEGRAM_BOT_TOKEN, TELEGRAM_WEBHOOK_SECRET, TELEGRAM_CHAT_ID,
+#   GITHUB_TOKEN (optional), APP_URL (optional)

@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+/* XEN design tokens — graphite surfaces, cool neutrals, teal accent. */
+:root {
+  --bg: #f6f7f8;
+  --surface: #ffffff;
+  --surface-2: #eef0f2;
+  --border: #dde1e5;
+  --text: #15191d;
+  --text-muted: #5b646d;
+  --accent: #0f8a85;
+  --accent-contrast: #ffffff;
+  --ok: #1f7a4d;
+  --warn: #9a6700;
+  --danger: #b42318;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1214;
+    --surface: #161a1d;
+    --surface-2: #1d2226;
+    --border: #2a3035;
+    --text: #e6e9eb;
+    --text-muted: #8d969e;
+    --accent: #2dd4c7;
+    --accent-contrast: #062a28;
+    --ok: #4ade80;
+    --warn: #fbbf24;
+    --danger: #f87171;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-text: var(--text);
+  --color-muted: var(--text-muted);
+  --color-accent: var(--accent);
+  --color-accent-contrast: var(--accent-contrast);
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+  --color-danger: var(--danger);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-mono), ui-monospace, monospace;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "xen",
+  "private": true,
+  "description": "XEN — Web3 Opportunity Intelligence System. Discover opportunities before the crowd.",
+  "packageManager": "pnpm@10.34.9",
+  "scripts": {
+    "dev": "pnpm --filter @xen/web dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "milestone": "pnpm --filter @xen/core milestone"
+  }
+}
