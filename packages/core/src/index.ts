@@ -21,3 +21,4 @@ export * from './intelligence/leads';
 export * from './intelligence/projects';
 export * from './intelligence/watch';
 export * from './intelligence/similar';
+export * from './lab';

@@ -37,24 +37,22 @@ export function NumbersSection({ stats }: { stats: PublicStats | null }) {
 }
 
 export function LabSection() {
-  const items = ["Bug report generation", "Screenshot analysis", "Product feedback", "Testing checklists", "Test cases", "Tester portfolio", "Project outreach"];
+  const items = ["Bug reports", "Screenshot analysis", "Test plans", "Product feedback", "Tester portfolio", "Project outreach"];
   return (
     <section id="lab" aria-labelledby="lab-title" className="relative z-10 bg-xen-deep py-24 md:py-32">
       <Container className="grid items-center gap-14 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] lg:gap-20">
         <div>
           <Eyebrow>XEN Lab</Eyebrow>
           <h2 id="lab-title" className="xen-display mt-5 text-[clamp(2.25rem,4.2vw,3.6rem)] text-white">Turn your testing into professional work.</h2>
-          <p className="mt-6 text-[15px] leading-relaxed text-xen-silver">A workspace for writing clear bug reports, structured feedback and test cases, and for keeping a portfolio of the testing you have done.</p>
-          <p className="mt-6 inline-flex items-center gap-2 rounded-[6px] border border-white/10 px-3 py-1.5 text-[11px] font-medium tracking-[0.12em] text-xen-silver uppercase">
-            <span className="size-1.5 rounded-full bg-[#f3cf86]" aria-hidden /> In development · not available yet
-          </p>
+          <p className="mt-6 text-[15px] leading-relaxed text-xen-silver">Write clear bug reports from your own notes and screenshots, generate test plans, sharpen product feedback, keep a portfolio of real work, and draft outreach you send yourself. XEN structures what you observed; it never invents findings.</p>
+          <div className="mt-8"><AuroraButton href="/lab">Open XEN Lab</AuroraButton></div>
         </div>
-        {/* A preview of the planned workspace layout, labelled as planned. */}
-        <figure className="overflow-hidden rounded-[16px] border border-white/8 bg-xen-abyss" aria-label="Preview of the planned XEN Lab workspace">
+        {/* A schematic preview of the real bug report workspace. */}
+        <figure className="overflow-hidden rounded-[16px] border border-white/8 bg-xen-abyss" aria-label="Preview of the XEN Lab bug report workspace">
           <div className="flex items-center gap-2 border-b border-white/8 px-5 py-3">
             <XenSymbol className="size-4 text-xen-mist" title="" />
             <span className="text-xs text-xen-silver">Lab · Bug report</span>
-            <span className="ml-auto text-[10px] tracking-[0.12em] text-xen-slate uppercase">Planned</span>
+            <span className="ml-auto text-[10px] tracking-[0.12em] text-xen-slate uppercase">Preview</span>
           </div>
           <div className="grid gap-0 md:grid-cols-[13rem_minmax(0,1fr)]">
             <ul className="hidden border-r border-white/8 p-4 md:block">

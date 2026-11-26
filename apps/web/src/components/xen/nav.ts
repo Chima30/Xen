@@ -1,12 +1,12 @@
 import {
   Activity, Binoculars, Bookmark, Bug, Building2, CandlestickChart, Code2, Compass, Eye, FlaskConical, Gauge, Landmark, Network, Radar,
-  Settings, Sprout, Trophy, Vote, type LucideIcon,
+  FlaskRound, Send, Settings, Sprout, Trophy, Vote, type LucideIcon,
 } from "lucide-react";
 
 export type NavItem = { href: string; label: string; icon: LucideIcon; keywords?: string };
 export type NavGroup = { label: string; items: NavItem[] };
 
-/** Only pages that exist. Later phases add Lab, Tasks, Applications, Calendar, Earnings, etc. */
+/** Only pages that exist. Phase 7 adds Tasks, Applications, Calendar and Earnings. */
 export const NAV: NavGroup[] = [
   {
     label: "Intelligence",
@@ -34,6 +34,13 @@ export const NAV: NavGroup[] = [
     items: [
       { href: "/projects", label: "Projects", icon: Building2, keywords: "profiles signals funding early" },
       { href: "/leads", label: "Hidden Opportunities", icon: Binoculars, keywords: "leads outreach may need testers" },
+    ],
+  },
+  {
+    label: "Workspace",
+    items: [
+      { href: "/lab", label: "Testing Lab", icon: FlaskRound, keywords: "bug report test cases feedback portfolio screenshot" },
+      { href: "/outreach", label: "Outreach", icon: Send, keywords: "messages drafts contact projects" },
     ],
   },
   {

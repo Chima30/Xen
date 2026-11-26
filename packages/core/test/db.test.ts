@@ -131,6 +131,14 @@ describe('row level security', () => {
     const r = await as(A, () => db.query<{ owner: boolean }>(`select is_owner() as owner`));
     expect(r.rows[0]!.owner).toBe(false);
   });
+  it('lab feedback and bug reports are private to their owner', async () => {
+    await as(A, () => db.exec(`insert into feedback_items (user_id, category, observations) values ('${A}', 'ui', 'The buy button overlaps the price on small screens')`));
+    await as(A, () => db.exec(`insert into bug_reports (user_id, title, input, report_markdown, platform_url) values ('${A}', 'Buy button overlaps price', '{}', '# x', 'https://app.example.test')`));
+    expect((await as(B, () => db.query(`select * from feedback_items`))).rows).toHaveLength(0);
+    expect((await as(B, () => db.query(`select * from bug_reports`))).rows).toHaveLength(0);
+    expect((await as(A, () => db.query(`select * from bug_reports`))).rows).toHaveLength(1);
+    await expect(as(B, () => db.exec(`insert into feedback_items (user_id, category, observations) values ('${A}', 'ui', 'x')`))).rejects.toThrow();
+  });
   it('saved filters are private to their owner', async () => {
     await as(A, () => db.exec(`insert into saved_filters (user_id, name, query) values ('${A}', 'zero capital', 'capital=none')`));
     const b = await as(B, () => db.query(`select * from saved_filters`));
