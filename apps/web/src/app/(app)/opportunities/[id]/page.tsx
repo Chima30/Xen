@@ -7,7 +7,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AppliedButton, HideButton, SaveButton } from "@/components/xen/opportunity-actions";
 import { OpportunityTable } from "@/components/xen/opportunity-table";
-import { CapitalPill, Pill, RewardPill, Score, Section, VerificationPill } from "@/components/xen/status";
+import { CapitalPill, Pill, RewardPill, Score, Section, VerifyMark } from "@/components/xen/status";
 import { cn } from "@/lib/utils";
 import { deadlineTone, formatDate, formatDateTime, formatMinutes, formatReward, relative } from "@/lib/xen/format";
 import { categoryLabel, PRIORITY, REWARD_STATUS, riskLabel } from "@/lib/xen/labels";
@@ -49,13 +49,26 @@ const CHECK_LABELS: Record<string, string> = {
 
 type Check = { name: string; passed: boolean | null; detail: string };
 
+const EVIDENCE_KIND: Record<string, string> = {
+  reward: "Supports the reward",
+  eligibility: "Supports eligibility",
+  deadline: "Supports the deadline",
+  official_link: "Official link",
+  capital: "Supports the capital requirement",
+  general: "General",
+};
+
+const hostOf = (url: string) => {
+  try { return new URL(url).host.replace(/^www\./, ""); } catch { return url; }
+};
+
 async function Detail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   if (!UUID.test(id)) notFound();
   const now = await requestNow();
   const data = await getOpportunity(id);
   if (!data) notFound();
-  const { o, evidence, rewardEvidence, verifications, project, saved, hidden, application, related, relatedBy } = data;
+  const { o, evidence, verifications, project, saved, hidden, application, related, relatedBy } = data;
   const sb = (o.score_breakdown ?? {}) as ScoreBreakdown;
   const reward = formatReward(o.reward_amount, o.reward_amount_max, o.reward_currency);
   const latest = verifications[0];
@@ -76,12 +89,11 @@ async function Detail({ params }: { params: Promise<{ id: string }> }) {
             {priority && <Pill tone={priority.tone}>{priority.label}</Pill>}
             {!o.is_active && <Pill>Inactive</Pill>}
           </div>
-          <h1 className="text-xl font-semibold tracking-tight text-balance">{o.title}</h1>
-          <div className="flex flex-wrap gap-1.5">
+          <h1 className="flex items-start gap-2 text-xl font-medium tracking-tight text-balance"><VerifyMark status={o.verification} className="mt-2" />{o.title}</h1>
+          <div className="flex flex-wrap gap-2">
             <RewardPill status={o.reward_status} />
-            <VerificationPill status={o.verification} />
             <CapitalPill capital={o.capital} />
-            {sb.eligibility && <Pill tone={sb.eligibility === "eligible" ? "ok" : sb.eligibility === "ineligible" ? "danger" : "neutral"}>{sb.eligibility === "eligible" ? "Eligible" : sb.eligibility === "ineligible" ? "Not eligible" : "Eligibility unclear"}</Pill>}
+            {sb.eligibility && <Pill tone={sb.eligibility === "ineligible" ? "danger" : "neutral"}>{sb.eligibility === "eligible" ? "Eligible" : sb.eligibility === "ineligible" ? "Not eligible" : "Eligibility unclear"}</Pill>}
           </div>
           <div className="flex flex-wrap gap-2 pt-1">
             <SaveButton id={o.id} saved={saved} variant="full" />
@@ -141,19 +153,26 @@ async function Detail({ params }: { params: Promise<{ id: string }> }) {
               <Item label="Blockchains">{(o.networks as string[]).length ? (o.networks as string[]).join(", ") : "Not stated"}</Item>
             </dl>
             {(o.missing_fields as string[]).length > 0 && (
-              <p className="mt-3 text-xs text-muted-foreground">Not found in the source: {(o.missing_fields as string[]).map((f) => f.replaceAll("_", " ")).join(", ")}.</p>
+              <p className="mt-3 text-xs text-muted-foreground">Not found in the source: {(o.missing_fields as string[]).map((f) => f.replace(/_at$/, "").replaceAll("_", " ")).join(", ")}</p>
             )}
           </Section>
 
-          <Section title="Evidence" description="Quoted directly from the source. Each quote was checked to appear verbatim in the page.">
-            {evidence.length === 0 && rewardEvidence.every((r) => !r.excerpt) ? (
-              <p className="text-sm text-muted-foreground">No quotes could be confirmed in the source text.</p>
+          <Section title="Evidence" description="Quoted from the source and matched word for word">
+            {evidence.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No quote could be matched in the source text, so nothing here is treated as confirmed.</p>
             ) : (
               <ul className="space-y-3">
                 {evidence.map((e, i) => (
-                  <li key={i} className="text-sm">
-                    <span className="text-[11px] font-medium text-muted-foreground uppercase">{e.kind.replaceAll("_", " ")}</span>
-                    <blockquote className="mt-1 border-l-2 border-primary/50 pl-3 text-foreground/90">{e.excerpt}</blockquote>
+                  <li key={i}>
+                    {/* A clipped excerpt: what it supports, where it came from, the words themselves */}
+                    <figure className="rounded-md border bg-background/60">
+                      <figcaption className="flex items-center gap-2 border-b px-3 py-2 text-2xs text-muted-foreground">
+                        <VerifyMark status="verified_announcement" className="size-2.5" />
+                        <span className="text-foreground">{EVIDENCE_KIND[e.kind] ?? e.kind.replaceAll("_", " ")}</span>
+                        <span className="ml-auto truncate font-mono">{hostOf(e.source_url)}</span>
+                      </figcaption>
+                      <blockquote className="px-3 py-3 text-sm leading-relaxed text-foreground/90">“{e.excerpt}”</blockquote>
+                    </figure>
                   </li>
                 ))}
               </ul>
@@ -170,7 +189,7 @@ async function Detail({ params }: { params: Promise<{ id: string }> }) {
 
         <div className="space-y-4">
           <Section title="Key dates">
-            <dl className="space-y-2.5 text-sm">
+            <dl className="space-y-3 text-sm">
               <Item label="Deadline">
                 {o.deadline_at ? <span className={cn(dTone === "danger" && "text-destructive", dTone === "warn" && "text-warn")}>{formatDateTime(o.deadline_at)} WAT · {relative(o.deadline_at, now)}</span> : "None stated"}
               </Item>
@@ -182,14 +201,14 @@ async function Detail({ params }: { params: Promise<{ id: string }> }) {
           </Section>
 
           <Section title="Score breakdown" description={sb.capped ? `Capped: ${sb.capped.replaceAll("_", " ")}` : "Weighted for a zero-capital profile in Nigeria"}>
-            <ul className="space-y-2.5">
+            <ul className="space-y-3">
               {(sb.factors ?? []).map((f) => (
                 <li key={f.key} className="text-sm">
                   <div className="flex items-baseline justify-between gap-2">
                     <span>{FACTOR_LABELS[f.key] ?? f.key}</span>
                     <span className="font-mono text-xs tabular-nums text-muted-foreground">{f.points}/{f.weight}</span>
                   </div>
-                  <div className="mt-1 h-1 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-primary" style={{ width: `${f.weight ? (f.points / f.weight) * 100 : 0}%` }} /></div>
+                  <div className="mt-1 h-1 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-foreground/50" style={{ width: `${f.weight ? (f.points / f.weight) * 100 : 0}%` }} /></div>
                   <p className="mt-0.5 text-xs text-muted-foreground">{f.reason}</p>
                 </li>
               ))}
@@ -222,7 +241,7 @@ async function Detail({ params }: { params: Promise<{ id: string }> }) {
 
           <Section title="Project">
             {project ? (
-              <dl className="space-y-2.5 text-sm">
+              <dl className="space-y-3 text-sm">
                 <Item label="Name">{project.name}</Item>
                 {project.website && <Item label="Website"><a className="text-primary hover:underline" href={project.website} target="_blank" rel="noopener noreferrer nofollow">{project.website.replace(/^https?:\/\//, "")}</a></Item>}
                 <Item label="Stage">{String(project.stage).replaceAll("_", " ")}</Item>
@@ -242,7 +261,7 @@ async function Detail({ params }: { params: Promise<{ id: string }> }) {
 function Item({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="min-w-0">
-      <dt className="text-[11px] font-medium text-muted-foreground">{label}</dt>
+      <dt className="text-2xs font-medium text-muted-foreground">{label}</dt>
       <dd className="mt-0.5 break-words">{children}</dd>
     </div>
   );

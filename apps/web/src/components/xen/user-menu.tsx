@@ -22,7 +22,7 @@ export function UserMenu({ email, name, role }: { email: string | null; name: st
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon-sm" aria-label="Account menu" className="rounded-full">
-          <span className="flex size-6 items-center justify-center rounded-full bg-primary/15 font-mono text-xs font-semibold text-primary">{initial}</span>
+          <span className="flex size-6 items-center justify-center rounded-full bg-muted font-mono text-xs font-medium text-foreground">{initial}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-60">

@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: "Settings" };
 export default function SettingsPage() {
   return (
     <div className="space-y-4">
-      <PageHeader title="Settings" description="Your profile, what you want to find, and how XEN reaches you." />
+      <PageHeader title="Settings" description="Your profile, what you want to find, and how XEN reaches you" />
       <Suspense fallback={<div className="space-y-4" aria-busy="true"><Skeleton className="h-48" /><Skeleton className="h-64" /><Skeleton className="h-64" /></div>}>
         <Settings />
       </Suspense>
@@ -33,11 +33,11 @@ async function Settings() {
       </Section>
       <Section
         title="Opportunity preferences"
-        description="Saved to your account. Scores are currently computed once per opportunity with the default profile (Nigeria, zero capital); per-user rescoring is not built yet."
+        description="Saved to your account. Scores still use the default profile (Nigeria, zero capital) until per-user rescoring is built."
       >
         <PreferencesForm prefs={s.prefs} categories={ALL_CATEGORIES} />
       </Section>
-      <Section title="Notifications" description="Applies to alerts and briefings sent to your linked Telegram account.">
+      <Section title="Notifications" description="Applies to alerts and briefings sent to your linked Telegram account">
         <NotificationsForm notif={s.notif} categories={ALL_CATEGORIES} />
       </Section>
     </div>

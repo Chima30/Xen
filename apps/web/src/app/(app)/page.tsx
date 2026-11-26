@@ -15,8 +15,8 @@ export const metadata: Metadata = { title: "Overview" };
 
 export default function OverviewPage() {
   return (
-    <div className="space-y-5">
-      <PageHeader title="Overview" description="What XEN has found, what needs your attention, and how the system is running." />
+    <div className="space-y-6">
+      <PageHeader title="Overview" description="What XEN found, what needs you, and how the system is running" />
       <Suspense fallback={<OverviewSkeleton />}>
         <Overview />
       </Suspense>
@@ -30,54 +30,51 @@ async function Overview() {
   const money = (rows: [string, number][]) =>
     rows.length ? rows.map(([cur, amt]) => `${amt.toLocaleString("en-US", { maximumFractionDigits: 2 })} ${cur}`).join(" · ") : null;
 
-  const tiles: { label: string; value: number | null; href?: string; hint?: string }[] = [
-    { label: "Discovered (24h)", value: d.counts.today, href: "/discover?discovered=24h&sort=newest" },
-    { label: "High priority", value: d.counts.high, href: "/discover?minScore=85", hint: "Score 85+" },
-    { label: "Confirmed paid", value: d.counts.paid, href: "/discover?rewardStatus=confirmed" },
-    { label: "Zero capital", value: d.counts.zero, href: "/discover?capital=none" },
-    { label: "Active applications", value: d.counts.activeApplications },
-    { label: "Watchlisted projects", value: d.counts.watchlisted },
+  // Four readings that answer "is there something worth my time today?". Each opens the matching list.
+  const tiles: { label: string; value: number | null; href: string; hint: string }[] = [
+    { label: "Discovered", value: d.counts.today, href: "/discover?discovered=24h&sort=newest", hint: "Last 24 hours" },
+    { label: "High priority", value: d.counts.high, href: "/discover?minScore=85", hint: "Score 85 or more" },
+    { label: "Confirmed paid", value: d.counts.paid, href: "/discover?rewardStatus=confirmed", hint: "Reward stated by the source" },
+    { label: "Zero capital", value: d.counts.zero, href: "/discover?capital=none", hint: "No money needed to take part" },
   ];
 
   return (
-    <div className="space-y-5">
-      <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-md border bg-border sm:grid-cols-3 xl:grid-cols-6">
-        {tiles.map((t) => {
-          const body = (
-            <>
+    <div className="space-y-6">
+      <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-md border bg-border sm:grid-cols-4">
+        {tiles.map((t) => (
+          <div key={t.label} className="bg-card">
+            <Link href={t.href} className="block h-full p-4 transition-colors hover:bg-muted/40">
               <dt className="text-xs text-muted-foreground">{t.label}</dt>
-              <dd className="mt-1 font-mono text-2xl font-medium tabular-nums">{t.value ?? <span title="Could not load">—</span>}</dd>
-              {t.hint && <p className="text-[11px] text-muted-foreground">{t.hint}</p>}
-            </>
-          );
-          return (
-            <div key={t.label} className="bg-card">
-              {t.href ? <Link href={t.href} className="block h-full p-3.5 transition-colors hover:bg-muted/40">{body}</Link> : <div className="p-3.5">{body}</div>}
-            </div>
-          );
-        })}
+              <dd className="mt-2 font-mono text-2xl font-medium tabular-nums">{t.value ?? <span title="Could not load">—</span>}</dd>
+              <p className="mt-1 text-2xs text-muted-foreground">{t.hint}</p>
+            </Link>
+          </div>
+        ))}
       </dl>
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3">
         <Section title="Discovery activity" description="Opportunities stored per day, Lagos time" className="lg:col-span-2">
           <DiscoveryChart data={d.perDay} />
         </Section>
-        <Section title="Earnings" description="Potential and received are kept separate">
-          <dl className="space-y-3 text-sm">
-            <div>
-              <dt className="text-xs text-muted-foreground">Pending payments ({d.pending.count})</dt>
-              <dd className="mt-0.5 font-mono">{money(d.pending.byCurrency) ?? "None recorded"}</dd>
-            </div>
-            <div>
-              <dt className="text-xs text-muted-foreground">Received ({d.received.count})</dt>
-              <dd className="mt-0.5 font-mono">{money(d.received.byCurrency) ?? "None recorded"}</dd>
-            </div>
-            <p className="text-xs text-muted-foreground">Speculative rewards and unaccepted applications are never counted as earnings. Earnings tracking arrives in Phase 7.</p>
-          </dl>
+        <Section title="Earnings" description="Received and pending are kept apart">
+          {d.pending.count + d.received.count === 0 ? (
+            <p className="text-sm text-muted-foreground">No payments recorded yet. Speculative rewards are never counted as earnings; tracking arrives in Phase 7.</p>
+          ) : (
+            <dl className="space-y-3 text-sm">
+              <div>
+                <dt className="text-xs text-muted-foreground">Received</dt>
+                <dd className="mt-1 font-mono tabular-nums">{money(d.received.byCurrency) ?? "None"}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-muted-foreground">Pending</dt>
+                <dd className="mt-1 font-mono tabular-nums">{money(d.pending.byCurrency) ?? "None"}</dd>
+              </div>
+            </dl>
+          )}
         </Section>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-2 lg:col-span-2">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-medium">Recently discovered</h2>
@@ -87,7 +84,7 @@ async function Overview() {
         </div>
         <Section title="Upcoming deadlines" description="Next 14 days">
           {d.deadlines.length ? (
-            <ul className="space-y-2.5">
+            <ul className="space-y-3">
               {d.deadlines.map((o) => (
                 <li key={o.id} className="text-sm">
                   <Link href={`/opportunities/${o.id}`} className="line-clamp-1 font-medium hover:underline">{o.title}</Link>
@@ -101,14 +98,14 @@ async function Overview() {
         </Section>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3">
         <Section title="Latest alerts" description="Telegram notifications">
           {d.alerts.length ? (
-            <ul className="space-y-2.5">
+            <ul className="space-y-3">
               {d.alerts.map((a) => (
                 <li key={a.id} className="text-sm">
                   {a.opportunity_id ? <Link href={`/opportunities/${a.opportunity_id}`} className="line-clamp-1 font-medium hover:underline">{a.title ?? "Opportunity"}</Link> : <span className="font-medium">{a.kind.replaceAll("_", " ")}</span>}
-                  <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <p className="flex items-center gap-2 text-xs text-muted-foreground">
                     <Pill tone={a.status === "sent" ? "ok" : a.status === "failed" ? "danger" : "neutral"}>{a.status}</Pill>
                     {relative(a.sent_at ?? a.created_at, now)}
                   </p>
@@ -157,10 +154,10 @@ async function Overview() {
 
 function OverviewSkeleton() {
   return (
-    <div className="space-y-5" aria-busy="true">
-      <Skeleton className="h-[86px] w-full" />
-      <div className="grid gap-4 lg:grid-cols-3"><Skeleton className="h-56 lg:col-span-2" /><Skeleton className="h-56" /></div>
-      <div className="grid gap-4 lg:grid-cols-3"><Skeleton className="h-64 lg:col-span-2" /><Skeleton className="h-64" /></div>
+    <div className="space-y-6" aria-busy="true">
+      <Skeleton className="h-24 w-full" />
+      <div className="grid gap-6 lg:grid-cols-3"><Skeleton className="h-56 lg:col-span-2" /><Skeleton className="h-56" /></div>
+      <div className="grid gap-6 lg:grid-cols-3"><Skeleton className="h-64 lg:col-span-2" /><Skeleton className="h-64" /></div>
     </div>
   );
 }

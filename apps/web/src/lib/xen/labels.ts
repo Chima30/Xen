@@ -37,47 +37,47 @@ export const categoryLabel = (c: string) => CATEGORY_LABELS[c] ?? c.replaceAll("
 export const GROUPS = {
   "paid-testing": {
     label: "Paid Testing",
-    description: "Paid beta and alpha testing, feedback, usability, QA and user research.",
+    description: "Paid beta and alpha testing, feedback, usability, QA and user research",
     categories: ["paid_beta_testing", "paid_alpha_testing", "paid_feedback", "usability_testing", "bug_reporting", "user_research", "qa_testing", "community_testing"],
   },
   "prediction-markets": {
     label: "Prediction Markets",
-    description: "Testing programs and early access for prediction markets.",
+    description: "Testing programs and early access for prediction markets",
     categories: ["prediction_market_testing"],
   },
   "trading-platforms": {
     label: "Trading Platforms",
-    description: "DEX, perpetual and spot trading tests, and trading competitions.",
+    description: "DEX, perpetual and spot trading tests, and trading competitions",
     categories: ["dex_testing", "perp_testing", "spot_trading_testing", "trading_competition"],
   },
   "incentivized-testnets": {
     label: "Incentivized Testnets",
-    description: "Testnets with announced or expected participation incentives.",
+    description: "Testnets with announced or expected participation incentives",
     categories: ["incentivized_testnet"],
   },
   "early-projects": {
     label: "Early Projects",
-    description: "Waitlists, upcoming launches and early-stage projects.",
+    description: "Waitlists, upcoming launches and early-stage projects",
     categories: ["early_project", "upcoming_launch", "waitlist"],
   },
   "bug-bounties": {
     label: "Bug Bounties",
-    description: "Security and bug bounty programs.",
+    description: "Security and bug bounty programs",
     categories: ["bug_bounty"],
   },
   hackathons: {
     label: "Hackathons",
-    description: "Hackathons with prizes.",
+    description: "Hackathons with prizes",
     categories: ["hackathon"],
   },
   "jobs-gigs": {
     label: "Jobs and Gigs",
-    description: "Freelance, development, design, writing, ambassador and community work.",
+    description: "Freelance, development, design, writing, ambassador and community work",
     categories: ["freelance", "development", "design", "ambassador", "community_management", "writing_bounty"],
   },
   grants: {
     label: "Grants",
-    description: "Ecosystem grants and campaigns.",
+    description: "Ecosystem grants and campaigns",
     categories: ["grant", "ecosystem_campaign"],
   },
 } as const satisfies Record<string, { label: string; description: string; categories: readonly string[] }>;
@@ -87,11 +87,11 @@ export const isGroupSlug = (s: string): s is GroupSlug => s in GROUPS;
 export type Tone = "ok" | "warn" | "danger" | "info" | "neutral";
 
 export const REWARD_STATUS: Record<string, { label: string; tone: Tone; hint: string }> = {
-  confirmed: { label: "Confirmed paid", tone: "ok", hint: "The source explicitly states a reward." },
+  confirmed: { label: "Confirmed paid", tone: "ok", hint: "The source explicitly states a reward" },
   performance_based: { label: "Performance based", tone: "info", hint: "Paid depending on results, e.g. accepted bugs or rankings." },
   speculative: { label: "Speculative", tone: "warn", hint: "Possible future reward. Not guaranteed income." },
-  unpaid: { label: "Unpaid", tone: "neutral", hint: "The source states there is no payment." },
-  unverified: { label: "Unverified", tone: "neutral", hint: "No reward evidence was found in the source." },
+  unpaid: { label: "Unpaid", tone: "neutral", hint: "The source states there is no payment" },
+  unverified: { label: "Unverified", tone: "neutral", hint: "No reward evidence was found in the source" },
 };
 
 export const VERIFICATION: Record<string, { label: string; tone: Tone }> = {
@@ -104,8 +104,8 @@ export const VERIFICATION: Record<string, { label: string; tone: Tone }> = {
 };
 
 export const CAPITAL: Record<string, { label: string; tone: Tone }> = {
-  none: { label: "No capital", tone: "ok" },
-  gas_only: { label: "Gas only", tone: "info" },
+  none: { label: "No capital", tone: "neutral" },
+  gas_only: { label: "Gas only", tone: "neutral" },
   required: { label: "Capital required", tone: "warn" },
   unknown: { label: "Capital unknown", tone: "neutral" },
 };

@@ -75,12 +75,12 @@ export function AppShell({ children, userMenu }: { children: React.ReactNode; us
           <button
             type="button"
             onClick={() => setPaletteOpen(true)}
-            aria-label="Search or jump to (Ctrl+K)"
+            aria-label="Search (Ctrl+K)"
             className="ml-auto flex h-8 min-w-0 items-center gap-2 rounded-md border bg-card px-2 text-sm text-muted-foreground transition-colors hover:text-foreground sm:w-full sm:max-w-72 sm:px-2.5 md:ml-0"
           >
             <Search className="size-4 shrink-0" />
-            <span className="hidden truncate sm:inline">Search or jump to…</span>
-            <kbd className="ml-auto hidden rounded border bg-muted px-1 font-mono text-[10px] sm:inline">Ctrl K</kbd>
+            <span className="hidden truncate sm:inline">Search</span>
+            <kbd className="ml-auto hidden rounded border bg-muted px-1 font-mono text-2xs sm:inline">Ctrl K</kbd>
           </button>
           <div className="flex shrink-0 items-center gap-1 md:ml-auto">
             <ThemeToggle />
@@ -97,7 +97,7 @@ export function AppShell({ children, userMenu }: { children: React.ReactNode; us
 function Brand({ compact = false }: { compact?: boolean }) {
   return (
     <Link href="/" className="flex items-baseline gap-2 rounded-sm outline-offset-2">
-      <span className="font-mono text-sm font-semibold tracking-tight text-primary">XEN</span>
+      <span className="font-mono text-sm font-semibold text-foreground">XEN</span>
       {!compact && <span className="text-xs text-muted-foreground">Opportunity intelligence</span>}
     </Link>
   );
@@ -121,8 +121,8 @@ function NavList({ pathname, collapsed, onNavigate }: { pathname: string | null;
   return (
     <nav className="flex-1 overflow-y-auto px-2 py-3" aria-label="Main">
       {NAV.map((g) => (
-        <div key={g.label} className="mb-3">
-          {!collapsed && <p className="px-2 pb-1 text-[11px] font-medium text-muted-foreground">{g.label}</p>}
+        <div key={g.label} className="mb-6 last:mb-0">
+          {!collapsed && <p className="px-2 pb-2 text-2xs text-muted-foreground">{g.label}</p>}
           <ul className="space-y-px">
             {g.items.map((item) => {
               const active = pathname !== null && isActiveExact(pathname, item.href);
@@ -134,10 +134,10 @@ function NavList({ pathname, collapsed, onNavigate }: { pathname: string | null;
                   className={cn(
                     "flex h-8 items-center gap-2.5 rounded-md px-2 text-sm transition-colors",
                     collapsed && "justify-center px-0",
-                    active ? "bg-sidebar-accent font-medium text-foreground" : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground",
+                    active ? "bg-sidebar-accent text-foreground shadow-[inset_0_0_0_1px_var(--border)]" : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground",
                   )}
                 >
-                  <item.icon className={cn("size-4 shrink-0", active && "text-primary")} />
+                  <item.icon className={cn("size-4 shrink-0", active && "text-foreground")} />
                   {!collapsed && <span className="truncate">{item.label}</span>}
                 </Link>
               );

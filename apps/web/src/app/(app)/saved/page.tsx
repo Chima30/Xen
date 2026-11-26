@@ -14,7 +14,7 @@ export const metadata: Metadata = { title: "Saved" };
 export default function SavedPage() {
   return (
     <div className="space-y-4">
-      <PageHeader title="Saved" description="Opportunities you bookmarked, and the ones you marked as not interested." />
+      <PageHeader title="Saved" description="Opportunities you bookmarked, and the ones you marked as not interested" />
       <Suspense fallback={<ListSkeleton />}>
         <Saved />
       </Suspense>

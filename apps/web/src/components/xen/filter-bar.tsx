@@ -60,7 +60,7 @@ export function FilterBar({
           {Object.entries(SORTS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
         </select>
         <Button type="button" variant="outline" size="sm" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-controls="advanced-filters">
-          <SlidersHorizontal /> Filters{activeCount > 0 && <span className="rounded bg-primary/15 px-1 font-mono text-[11px] text-primary">{activeCount}</span>}
+          <SlidersHorizontal /> Filters{activeCount > 0 && <span className="rounded bg-primary/15 px-1 font-mono text-2xs text-primary">{activeCount}</span>}
           <ChevronDown className={cn("transition-transform", open && "rotate-180")} />
         </Button>
         <DropdownMenu>
@@ -69,7 +69,7 @@ export function FilterBar({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-64">
             <DropdownMenuLabel>Saved filters</DropdownMenuLabel>
-            {savedFilters.length === 0 && <p className="px-2 py-1.5 text-xs text-muted-foreground">None yet. Set filters, then “Save current filters”.</p>}
+            {savedFilters.length === 0 && <p className="px-2 py-2 text-xs text-muted-foreground">None yet. Set filters, then “Save current filters”.</p>}
             {savedFilters.map((f) => (
               <DropdownMenuItem key={f.id} className="justify-between" onSelect={() => navigate(new URLSearchParams(f.query))}>
                 <span className="truncate">{f.name}</span>
@@ -100,7 +100,7 @@ export function FilterBar({
         )}
       </div>
 
-      <div id="advanced-filters" hidden={!open} className="grid grid-cols-2 gap-x-3 gap-y-2.5 rounded-md border bg-card p-3 sm:grid-cols-3 lg:grid-cols-6">
+      <div id="advanced-filters" hidden={!open} className="grid grid-cols-2 gap-x-3 gap-y-3 rounded-md border bg-card p-3 sm:grid-cols-3 lg:grid-cols-6">
         <Field label="Category">
           <select name="category" defaultValue={filters.category} className={field}>
             <option value="">All</option>
@@ -179,11 +179,11 @@ export function FilterBar({
             <option value="30d">Last 30 days</option>
           </select>
         </Field>
-        <label className="col-span-2 flex items-center gap-2 self-end pb-1.5 text-sm sm:col-span-1">
+        <label className="col-span-2 flex items-center gap-2 self-end pb-2 text-sm sm:col-span-1">
           <input type="checkbox" name="eligible" value="1" defaultChecked={filters.eligibleOnly} className="size-4 accent-primary" />
           Eligible for me (region)
         </label>
-        <label className="col-span-2 flex items-center gap-2 self-end pb-1.5 text-sm sm:col-span-1">
+        <label className="col-span-2 flex items-center gap-2 self-end pb-2 text-sm sm:col-span-1">
           <input type="checkbox" name="inactive" value="1" defaultChecked={filters.includeInactive} className="size-4 accent-primary" />
           Include inactive
         </label>
@@ -197,7 +197,7 @@ export function FilterBar({
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="flex min-w-0 flex-col gap-1">
-      <span className="text-[11px] font-medium text-muted-foreground">{label}</span>
+      <span className="text-2xs font-medium text-muted-foreground">{label}</span>
       {children}
     </label>
   );
@@ -213,7 +213,7 @@ function SaveFilterDialog({ open, onOpenChange, path, query }: { open: boolean; 
           <DialogTitle>Save filters</DialogTitle>
           <DialogDescription>Saves the filters currently applied on this page.</DialogDescription>
         </DialogHeader>
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           <Label htmlFor="filter-name">Name</Label>
           <Input id="filter-name" value={name} onChange={(e) => setName(e.target.value)} maxLength={60} placeholder="e.g. Zero-capital paid tests" />
         </div>

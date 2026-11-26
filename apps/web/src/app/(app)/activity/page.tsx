@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: "Agent Activity" };
 export default function ActivityPage() {
   return (
     <div className="space-y-4">
-      <PageHeader title="Agent Activity" description="What the scheduler and agents did, from the real logs." />
+      <PageHeader title="Agent Activity" description="What the scheduler and agents did, from the real logs" />
       <Suspense fallback={<div className="space-y-4" aria-busy="true"><Skeleton className="h-40" /><Skeleton className="h-96" /></div>}>
         <Activity />
       </Suspense>
@@ -64,13 +64,13 @@ async function Activity() {
           ) : jobs.length ? (
             <>
               <table className="w-full text-sm">
-                <thead className="text-left text-[11px] text-muted-foreground"><tr className="border-b"><th className="py-1.5 font-medium">Kind</th><th className="py-1.5 font-medium">Status</th><th className="py-1.5 text-right font-medium">Jobs</th></tr></thead>
+                <thead className="text-left text-2xs text-muted-foreground"><tr className="border-b"><th className="py-2 font-medium">Kind</th><th className="py-2 font-medium">Status</th><th className="py-2 text-right font-medium">Jobs</th></tr></thead>
                 <tbody className="divide-y">
                   {jobs.map((j) => (
                     <tr key={`${j.kind}-${j.status}`}>
-                      <td className="py-1.5 font-mono text-xs">{j.kind}</td>
-                      <td className="py-1.5"><Pill tone={j.status === "succeeded" ? "ok" : j.status === "dead" || j.status === "failed" ? "danger" : "neutral"}>{j.status}</Pill></td>
-                      <td className="py-1.5 text-right font-mono tabular-nums">{j.n}</td>
+                      <td className="py-2 font-mono text-xs">{j.kind}</td>
+                      <td className="py-2"><Pill tone={j.status === "succeeded" ? "ok" : j.status === "dead" || j.status === "failed" ? "danger" : "neutral"}>{j.status}</Pill></td>
+                      <td className="py-2 text-right font-mono tabular-nums">{j.n}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -78,7 +78,7 @@ async function Activity() {
               {failedJobs.length > 0 && (
                 <div className="mt-4">
                   <h3 className="text-xs font-medium text-muted-foreground">Recent failures and retries</h3>
-                  <ul className="mt-1 space-y-1.5">
+                  <ul className="mt-1 space-y-2">
                     {failedJobs.map((j, i) => (
                       <li key={i} className="text-xs">
                         <span className="font-mono">{j.kind}</span> · {j.status} · attempt {j.attempts} · {relative(j.created_at, now)}
@@ -101,7 +101,7 @@ async function Activity() {
             {logs.map((l) => (
               <li key={l.id} className="grid gap-1 py-2 text-sm sm:grid-cols-[7.5rem_8rem_minmax(0,1fr)] sm:gap-3">
                 <span className="text-xs text-muted-foreground" title={formatDateTime(l.created_at)}>{relative(l.created_at, now)}</span>
-                <span className="flex items-center gap-1.5">
+                <span className="flex items-center gap-2">
                   <Pill tone={l.level === "error" ? "danger" : l.level === "warn" ? "warn" : "neutral"}>{l.level}</Pill>
                   <span className="font-mono text-xs">{l.agent}</span>
                 </span>

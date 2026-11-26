@@ -15,7 +15,7 @@ export const metadata: Metadata = { title: "Sources and Usage" };
 export default function SourcesPage() {
   return (
     <div className="space-y-4">
-      <PageHeader title="Sources and Usage" description="Where XEN looks, how often, how healthy each source is, and how much free-tier quota is left." />
+      <PageHeader title="Sources and Usage" description="Where XEN looks, how often, how healthy each source is, and how much free-tier quota is left" />
       <Suspense fallback={<div className="space-y-4" aria-busy="true"><Skeleton className="h-40" /><Skeleton className="h-72" /></div>}>
         <Sources />
       </Suspense>
@@ -56,10 +56,10 @@ async function Sources() {
 
   return (
     <div className="space-y-4">
-      <Section title="API usage" description="Today (UTC) against XEN's daily budgets. When a budget is reached the integration pauses until the next day; paid usage is never enabled.">
+      <Section title="API usage" description="Today (UTC) against XEN's daily budgets. A spent budget pauses that integration until tomorrow; paid usage is never turned on.">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[640px] text-sm">
-            <thead className="text-left text-[11px] text-muted-foreground">
+            <thead className="text-left text-2xs text-muted-foreground">
               <tr className="border-b">
                 <th className="py-2 pr-3 font-medium">Provider</th>
                 <th className="py-2 pr-3 font-medium">Today</th>
@@ -74,8 +74,8 @@ async function Sources() {
                 const pct = p.daily ? Math.min(100, (p.used / p.daily) * 100) : null;
                 return (
                   <tr key={p.id}>
-                    <td className="py-2.5 pr-3 font-medium">{p.label}</td>
-                    <td className="py-2.5 pr-3">
+                    <td className="py-3 pr-3 font-medium">{p.label}</td>
+                    <td className="py-3 pr-3">
                       <span className="font-mono tabular-nums">{p.used}{p.daily ? ` / ${p.daily}` : ""}</span> <span className="text-xs text-muted-foreground">{p.unit}</span>
                       {pct !== null && (
                         <div className="mt-1 h-1 w-28 overflow-hidden rounded-full bg-muted">
@@ -83,12 +83,12 @@ async function Sources() {
                         </div>
                       )}
                     </td>
-                    <td className="py-2.5 pr-3 font-mono tabular-nums">
+                    <td className="py-3 pr-3 font-mono tabular-nums">
                       {p.monthUsed}{p.monthly ? <span className="text-muted-foreground"> / {p.monthly} free · {Math.max(0, p.monthly - p.monthUsed)} left</span> : null}
                     </td>
-                    <td className={cn("py-2.5 pr-3 font-mono tabular-nums", p.failures > 0 && "text-destructive")}>{p.failures}</td>
-                    <td className="py-2.5 pr-3 text-muted-foreground">{p.last ? relative(p.last, now) : "Never"}</td>
-                    <td className="max-w-64 truncate py-2.5 text-xs text-muted-foreground" title={p.lastErr ?? undefined}>{p.lastErr ?? "—"}</td>
+                    <td className={cn("py-3 pr-3 font-mono tabular-nums", p.failures > 0 && "text-destructive")}>{p.failures}</td>
+                    <td className="py-3 pr-3 text-muted-foreground">{p.last ? relative(p.last, now) : "Never"}</td>
+                    <td className="max-w-64 truncate py-3 text-xs text-muted-foreground" title={p.lastErr ?? undefined}>{p.lastErr ?? "—"}</td>
                   </tr>
                 );
               })}
@@ -103,7 +103,7 @@ async function Sources() {
             const h = latestBySource.get(s.id);
             return (
               <li key={s.id} className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex min-w-0 items-start gap-2.5">
+                <div className="flex min-w-0 items-start gap-3">
                   {s.status !== "active" ? <CircleDashed className="mt-0.5 size-4 shrink-0 text-muted-foreground" /> : !h ? <CircleDashed className="mt-0.5 size-4 shrink-0 text-muted-foreground" /> : h.ok ? <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-ok" /> : <CircleAlert className="mt-0.5 size-4 shrink-0 text-destructive" />}
                   <div className="min-w-0">
                     <p className="flex flex-wrap items-center gap-2 text-sm font-medium">
@@ -126,7 +126,7 @@ async function Sources() {
       </Section>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Section title="Search queries" description="Rotated by the Tavily sources. Disabled queries are skipped.">
+        <Section title="Search queries" description="Rotated by the Tavily sources, disabled ones are skipped">
           <ul className="max-h-[28rem] divide-y overflow-y-auto">
             {queries.map((q) => (
               <li key={q.query} className="flex items-center justify-between gap-3 py-2">
@@ -141,14 +141,14 @@ async function Sources() {
             ))}
           </ul>
         </Section>
-        <Section title="Adapters" description="What XEN can and cannot read, and why.">
+        <Section title="Adapters" description="What XEN can and cannot read, and why">
           <ul className="max-h-[28rem] divide-y overflow-y-auto">
             {adapters.map((a) => (
               <li key={a.id} className="py-2">
                 <p className="flex flex-wrap items-center gap-2 text-sm font-medium">
                   {a.name}
                   <Pill tone={a.supported ? "ok" : "neutral"}>{a.supported ? "Supported" : "Not supported"}</Pill>
-                  {(a.requires_credentials as string[]).length > 0 && <span className="font-mono text-[11px] text-muted-foreground">{(a.requires_credentials as string[]).join(", ")}</span>}
+                  {(a.requires_credentials as string[]).length > 0 && <span className="font-mono text-2xs text-muted-foreground">{(a.requires_credentials as string[]).join(", ")}</span>}
                 </p>
                 {a.notes && <p className="text-xs text-muted-foreground">{a.notes}</p>}
               </li>

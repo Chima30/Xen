@@ -32,7 +32,7 @@ function SaveRow({ pending, state }: { pending: boolean; state: ActionResult | n
 
 function Field({ id, label, hint, children }: { id: string; label: string; hint?: string; children: React.ReactNode }) {
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-2">
       <Label htmlFor={id}>{label}</Label>
       {children}
       {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
@@ -54,7 +54,7 @@ function SwitchRow({ name, label, hint, defaultChecked }: { name: string; label:
 
 function CategoryChecks({ name, all, selected }: { name: string; all: readonly string[]; selected: string[] }) {
   return (
-    <div className="grid grid-cols-1 gap-x-4 gap-y-1.5 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2 lg:grid-cols-3">
       {all.map((c) => (
         <label key={c} className="flex items-center gap-2 text-sm">
           <input type="checkbox" name={name} value={c} defaultChecked={selected.includes(c)} className="size-4 accent-primary" />
@@ -74,7 +74,7 @@ export function ProfileForm({ profile }: { profile: Profile }) {
     <form action={action} className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-3">
         <Field id="display_name" label="Display name"><Input id="display_name" name="display_name" defaultValue={profile?.display_name ?? ""} maxLength={80} /></Field>
-        <Field id="country_code" label="Country" hint="2-letter code, used for eligibility."><Input id="country_code" name="country_code" defaultValue={profile?.country_code ?? "NG"} maxLength={2} required className="uppercase" /></Field>
+        <Field id="country_code" label="Country" hint="2-letter code, used for eligibility"><Input id="country_code" name="country_code" defaultValue={profile?.country_code ?? "NG"} maxLength={2} required className="uppercase" /></Field>
         <Field id="timezone" label="Time zone"><Input id="timezone" name="timezone" defaultValue={profile?.timezone ?? "Africa/Lagos"} required /></Field>
       </div>
       <Field id="skills" label="Skills" hint="Comma-separated, e.g. product_testing, bug_reporting, design">
@@ -95,7 +95,7 @@ export function PreferencesForm({ prefs, categories }: { prefs: Prefs; categorie
   useToast(state);
   return (
     <form action={action} className="space-y-4">
-      <SwitchRow name="zero_capital_mode" label="Zero Capital Mode" hint="Opportunities that need capital are capped at a score of 50." defaultChecked={prefs?.zero_capital_mode ?? true} />
+      <SwitchRow name="zero_capital_mode" label="Zero Capital Mode" hint="Opportunities that need capital are capped at a score of 50" defaultChecked={prefs?.zero_capital_mode ?? true} />
       <div className="grid gap-4 sm:grid-cols-4">
         <Field id="max_capital_usd" label="Max capital (USD)"><Input id="max_capital_usd" name="max_capital_usd" type="number" min={0} step="any" defaultValue={prefs?.max_capital_usd ?? 0} /></Field>
         <Field id="daily_minutes_available" label="Minutes per day"><Input id="daily_minutes_available" name="daily_minutes_available" type="number" min={0} max={1440} defaultValue={prefs?.daily_minutes_available ?? 120} required /></Field>
@@ -123,10 +123,10 @@ export function NotificationsForm({ notif, categories }: { notif: Notif; categor
   const hhmm = (t: string | null | undefined, d: string) => (t ?? d).slice(0, 5);
   return (
     <form action={action} className="space-y-4">
-      <SwitchRow name="telegram_enabled" label="Telegram alerts" hint="New-opportunity alerts to your linked Telegram account." defaultChecked={notif?.telegram_enabled ?? true} />
+      <SwitchRow name="telegram_enabled" label="Telegram alerts" hint="New-opportunity alerts to your linked Telegram account" defaultChecked={notif?.telegram_enabled ?? true} />
       <div className="grid gap-4 sm:grid-cols-3">
-        <Field id="min_score" label="Minimum score" hint="Alerts never go out below 65."><Input id="min_score" name="min_score" type="number" min={0} max={100} defaultValue={notif?.min_score ?? 65} required /></Field>
-        <Field id="quiet_start" label="Quiet hours start" hint="Saved for later: alerts currently pause 22:00–07:00 WAT for everyone."><Input id="quiet_start" name="quiet_start" type="time" defaultValue={hhmm(notif?.quiet_start, "22:00")} required /></Field>
+        <Field id="min_score" label="Minimum score" hint="Alerts never go out below 65"><Input id="min_score" name="min_score" type="number" min={0} max={100} defaultValue={notif?.min_score ?? 65} required /></Field>
+        <Field id="quiet_start" label="Quiet hours start" hint="Saved for later: alerts currently pause 22:00–07:00 WAT for everyone"><Input id="quiet_start" name="quiet_start" type="time" defaultValue={hhmm(notif?.quiet_start, "22:00")} required /></Field>
         <Field id="quiet_end" label="Quiet hours end"><Input id="quiet_end" name="quiet_end" type="time" defaultValue={hhmm(notif?.quiet_end, "07:00")} required /></Field>
       </div>
       <div className="grid gap-3 sm:grid-cols-3">

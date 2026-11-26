@@ -54,9 +54,9 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange} title="Search XEN" description="Jump to a page or search opportunities">
       <Command shouldFilter={false}>
-        <CommandInput value={term} onValueChange={setTerm} placeholder="Search opportunities or pages…" />
+        <CommandInput value={term} onValueChange={setTerm} placeholder="Search" />
         <CommandList>
-          <CommandEmpty>{pending ? "Searching…" : "No matches."}</CommandEmpty>
+          <CommandEmpty>{pending ? "Searching…" : "No matches"}</CommandEmpty>
           {t.length >= 2 && (
             <CommandGroup heading={pending ? "Opportunities (searching…)" : "Opportunities"}>
               {results.map((h) => (

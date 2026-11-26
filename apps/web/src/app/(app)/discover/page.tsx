@@ -7,7 +7,7 @@ export default function DiscoverPage({ searchParams }: PageProps<"/discover">) {
   return (
     <DiscoverView
       title="Discover"
-      description="Every active opportunity XEN has found, ranked by score. Filter, search and save views."
+      description="Every active opportunity XEN found, ranked by score"
       basePath="/discover"
       searchParams={searchParams}
     />
