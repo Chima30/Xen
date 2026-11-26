@@ -38,8 +38,7 @@ beforeAll(async () => {
   db = new PGlite({ extensions: { pg_trgm, pgcrypto } });
   await db.exec(SUPABASE_STUB);
   for (const f of readdirSync(MIG_DIR).filter((x) => x.endsWith('.sql')).sort()) await db.exec(readFileSync(resolve(MIG_DIR, f), 'utf8'));
-  await db.exec(`grant select, insert, update, delete on all tables in schema public to anon, authenticated, service_role;
-                 grant usage on all sequences in schema public to authenticated, service_role;`);
+  // Table privileges come from migration 0004 itself, so they are tested too.
   await db.exec(`insert into auth.users (id, email) values ('${A}', 'a@test'), ('${B}', 'b@test');`);
 }, 60_000);
 
@@ -111,11 +110,16 @@ describe('row level security', () => {
     await db.exec(`insert into applications (user_id, title) values ('${A}', 'A private'), ('${B}', 'B private');
                    insert into earnings (user_id, amount, currency, status) values ('${A}', 100, 'USDC', 'received');`);
   });
-  it('anon sees nothing', async () => {
+  it('anon has no table access', async () => {
     for (const t of ['opportunities', 'applications', 'earnings', 'projects', 'job_queue', 'telegram_accounts']) {
-      const r = await as(null, () => db.query(`select * from ${t}`));
-      expect(r.rows, t).toHaveLength(0);
+      await expect(as(null, () => db.query(`select * from ${t}`)), t).rejects.toThrow(/permission denied/);
     }
+  });
+  it('signed-in users can read shared tables (grants from migration 0004)', async () => {
+    const r = await as(A, () => db.query<{ n: number }>(`select count(*)::int n from opportunities`));
+    expect(r.rows[0]!.n).toBeGreaterThanOrEqual(0);
+    const s = await as(A, () => db.query(`select * from source_health limit 1`));
+    expect(Array.isArray(s.rows)).toBe(true);
   });
   it('users only see their own private rows', async () => {
     const a = await as(A, () => db.query<{ title: string }>(`select title from applications`));
