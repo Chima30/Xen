@@ -3,6 +3,7 @@ import { integrationStatus } from './env';
 import { tgCall, sendMessage, type InlineKeyboard } from './providers/telegram';
 import type { Repo } from './pipeline/repo';
 import { escapeHtml, sha256Hex } from './text';
+import { addWatch, classifyWatchArg } from './intelligence/watch';
 
 /** XEN Pulse — Telegram bot command + callback handling. */
 
@@ -33,7 +34,7 @@ const HELP = `<b>XEN</b> — Discover opportunities before the crowd.
 /search &lt;words&gt; — search stored opportunities
 /deadlines — closing within 7 days
 /saved /tasks /watchlist /earnings — your records (linked account)
-/watch &lt;project&gt; — add a project to your watchlist
+/watch &lt;project, website, GitHub repo or X link&gt; — watch a project
 /status — system and integration status
 /settings — notification settings
 
@@ -167,11 +168,18 @@ async function personal(c: Ctx, cmd: string, arg: string, userId: string) {
     return reply(c, `<b>Earnings (USD, where recorded)</b>\nReceived: $${sum('received').toFixed(2)}\nPending: $${sum('pending').toFixed(2)}\nExpected: $${sum('expected').toFixed(2)}\n<i>Expected and pending amounts are not income until received.</i>`);
   }
   if (cmd === '/watch') {
-    if (!arg) return reply(c, 'Usage: /watch <project name>');
-    const p = await db.from('projects').select('id, name').ilike('name', arg.replace(/[%_]/g, '')).maybeSingle();
-    if (!p.data) return reply(c, `XEN has no profile for “${escapeHtml(arg)}” yet. Add it with its website from the dashboard (Watchlist).`);
-    await db.from('watchlists').upsert({ user_id: userId, project_id: p.data.id }, { onConflict: 'user_id,project_id', ignoreDuplicates: true });
-    return reply(c, `Watching <b>${escapeHtml(p.data.name)}</b>.`);
+    if (!arg) return reply(c, 'Usage: /watch <project name, website, GitHub owner/repo or x.com link>');
+    // Same rules as the dashboard: a link creates monitored sources; a bare name must match a known project.
+    let input = classifyWatchArg(arg);
+    if ('name' in input && input.name) {
+      const p = await db.from('projects').select('id, name').ilike('name', input.name.replace(/[%_]/g, '')).maybeSingle();
+      if (!p.data) return reply(c, `XEN has no profile for “${escapeHtml(arg)}” yet. Send its website instead, e.g. /watch example.xyz`);
+      input = { name: p.data.name };
+    }
+    const r = await addWatch(c.repo, userId, input);
+    if (!r.ok) return reply(c, escapeHtml(r.error ?? 'Could not add that project.'));
+    const lines = r.sources.map((s) => `• ${escapeHtml(s.kind)}: ${escapeHtml(s.detail)}`);
+    return reply(c, `Watching <b>${escapeHtml(r.projectName ?? '')}</b>.${lines.length ? `\n${lines.join('\n')}` : '\nNo website or feed is known yet, so only opportunities and signals found elsewhere will be reported.'}`);
   }
 }
 

@@ -1,12 +1,12 @@
 import {
-  Activity, Bookmark, Bug, CandlestickChart, Code2, Compass, FlaskConical, Gauge, Landmark, Network, Radar,
+  Activity, Binoculars, Bookmark, Bug, Building2, CandlestickChart, Code2, Compass, Eye, FlaskConical, Gauge, Landmark, Network, Radar,
   Settings, Sprout, Trophy, Vote, type LucideIcon,
 } from "lucide-react";
 
 export type NavItem = { href: string; label: string; icon: LucideIcon; keywords?: string };
 export type NavGroup = { label: string; items: NavItem[] };
 
-/** Only pages that exist. Later phases add Watchlist, Lab, Tasks, Applications, Calendar, Earnings, etc. */
+/** Only pages that exist. Later phases add Lab, Tasks, Applications, Calendar, Earnings, etc. */
 export const NAV: NavGroup[] = [
   {
     label: "Intelligence",
@@ -30,8 +30,18 @@ export const NAV: NavGroup[] = [
     ],
   },
   {
+    label: "Early intelligence",
+    items: [
+      { href: "/projects", label: "Projects", icon: Building2, keywords: "profiles signals funding early" },
+      { href: "/leads", label: "Hidden Opportunities", icon: Binoculars, keywords: "leads outreach may need testers" },
+    ],
+  },
+  {
     label: "Personal",
-    items: [{ href: "/saved", label: "Saved", icon: Bookmark, keywords: "bookmarks hidden" }],
+    items: [
+      { href: "/watchlist", label: "Watchlist", icon: Eye, keywords: "watch monitor projects alerts" },
+      { href: "/saved", label: "Saved", icon: Bookmark, keywords: "bookmarks hidden" },
+    ],
   },
   {
     label: "System",

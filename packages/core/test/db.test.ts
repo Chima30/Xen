@@ -179,3 +179,45 @@ describe('row level security', () => {
     await as(A, () => db.exec(`insert into storage.objects (bucket_id, name) values ('evidence', '${A}/x.png')`));
   });
 });
+
+describe('early intelligence (migration 0007)', () => {
+  let projectId = '';
+  let annId = '';
+  beforeAll(async () => {
+    const p = await db.query<{ id: string }>(`insert into projects (slug, name) values ('acme', 'Acme') returning id`);
+    projectId = p.rows[0]!.id;
+    const a = await db.query<{ id: string }>(`insert into announcements (canonical_url, content_hash, project_id) values ('https://acme.xyz/', 'h1', $1) returning id`, [projectId]);
+    annId = a.rows[0]!.id;
+  });
+  it('registers the page monitor adapter', async () => {
+    const r = await db.query(`select id from source_adapters where id = 'page' and supported`);
+    expect(r.rows).toHaveLength(1);
+  });
+  it('stores signals with evidence and dedupes by content hash', async () => {
+    const ins = `insert into project_signals (project_id, signal_type, summary, source_url, content_hash, evidence_excerpt, announcement_id, details)
+                 values ($1, 'funding', 'Raised a seed round', 'https://acme.xyz/blog', 'sig1', 'Acme raised $3M', $2, '{"funding_amount_usd":3000000}')`;
+    await db.query(ins, [projectId, annId]);
+    await expect(db.query(ins, [projectId, annId])).rejects.toThrow();
+  });
+  it('records announcement changes once per version pair', async () => {
+    const ins = `insert into announcement_changes (announcement_id, project_id, from_hash, to_hash, deadline_changed, significant) values ($1, $2, 'h1', 'h2', true, true)`;
+    await db.query(ins, [annId, projectId]);
+    await expect(db.query(ins, [annId, projectId])).rejects.toThrow();
+  });
+  it('signed-in users can read changes and signals but not write them; anon cannot read', async () => {
+    const r = await as(A, () => db.query(`select deadline_changed from announcement_changes`));
+    expect(r.rows).toEqual([{ deadline_changed: true }]);
+    const s = await as(A, () => db.query(`select evidence_excerpt from project_signals`));
+    expect(s.rows).toHaveLength(1);
+    await expect(as(A, () => db.exec(`insert into announcement_changes (announcement_id, from_hash, to_hash) values ('${annId}', 'x', 'y')`))).rejects.toThrow();
+    await expect(as(A, () => db.exec(`insert into project_signals (project_id, signal_type, summary, source_url, content_hash) values ('${projectId}', 'funding', 'x', 'https://x', 'h')`))).rejects.toThrow();
+    await expect(as(null, () => db.query(`select * from announcement_changes`))).rejects.toThrow(/permission denied/);
+  });
+  it('watchlists stay private and keep per-project update types', async () => {
+    await as(A, () => db.exec(`insert into watchlists (user_id, project_id, update_types, notes) values ('${A}', '${projectId}', array['funding','deadline_change'], 'check weekly')`));
+    const mine = await as(A, () => db.query<{ update_types: string[] }>(`select update_types from watchlists`));
+    expect(mine.rows[0]!.update_types).toEqual(['funding', 'deadline_change']);
+    const theirs = await as(B, () => db.query(`select * from watchlists`));
+    expect(theirs.rows).toHaveLength(0);
+  });
+});

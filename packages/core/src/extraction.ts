@@ -1,6 +1,7 @@
 import { generateStructured, type GeminiOptions } from './providers/gemini';
 import { ALL_CATEGORIES, CAPITAL, ExtractedOpportunitySchema, ExtractionResultSchema, REWARD_STATUSES, STAGES, type ExtractedOpportunity } from './types';
 import { wrapUntrusted } from './text';
+import { ExtractedProjectSchema, ExtractedSignalSchema, SIGNAL_TYPES, type ExtractedProject, type ExtractedSignal } from './intelligence/signals';
 import { isSafePublicUrl } from './url';
 
 /** Opportunity Analysis Agent: structured extraction from one source document. */
@@ -19,7 +20,12 @@ Rules:
 - Dates as ISO 8601 (YYYY-MM-DD or full timestamp). If no year is stated, use null.
 - missing_fields lists important unknowns (e.g. "reward_amount", "deadline", "eligibility").
 - Set is_relevant=false for news, price talk, generic marketing, already-ended events with no open participation, or content with no actionable opportunity or project signal.
-- Return at most 3 opportunities; prefer the primary one.`;
+- Return at most 3 opportunities; prefer the primary one.
+
+Project and signals (early-project intelligence):
+- "project" describes the single project the document is mainly about (name, official website if stated, 1-2 sentence description, category such as "perpetual DEX" or "prediction market", blockchain ecosystems, development stage). Use nulls when the document does not say. If the document covers many unrelated projects (a news roundup), set project.name to null.
+- "signals" lists things the document states the project did or announced: funding, testnet_announced, beta_launch, waitlist, mainnet_launch, product_launch, github_release, partnership, tester_recruitment, incentive_program, roadmap, docs_update. Each needs a VERBATIM evidence_excerpt from the document. Funding amounts only when the document states them; never estimate. Max 5 signals. Return [] when there are none.
+- A document with no opportunity can still be relevant when it contains project signals; set is_relevant=true in that case.`;
 
 const s = (desc?: string) => ({ type: 'string', ...(desc ? { description: desc } : {}) });
 const ns = (desc?: string) => ({ type: ['string', 'null'], ...(desc ? { description: desc } : {}) });
@@ -32,6 +38,28 @@ export const EXTRACTION_JSON_SCHEMA = {
     is_relevant: { type: 'boolean' },
     irrelevance_reason: ns(),
     project_stage: { type: 'string', enum: [...STAGES] },
+    project: {
+      type: 'object',
+      properties: {
+        name: ns(), website: ns('Official website URL if stated'), description: ns('1-2 sentence factual description'),
+        category: ns('Product category, e.g. perpetual DEX'), ecosystems: arr, stage: { type: 'string', enum: [...STAGES] },
+      },
+      required: ['name', 'website', 'description', 'category', 'ecosystems', 'stage'],
+    },
+    signals: {
+      type: 'array',
+      maxItems: 5,
+      items: {
+        type: 'object',
+        properties: {
+          signal_type: { type: 'string', enum: [...SIGNAL_TYPES.filter((t) => !['deadline_change', 'reward_change', 'announcement_changed'].includes(t))] },
+          summary: s('One factual sentence'),
+          evidence_excerpt: s('Verbatim quote'),
+          funding_amount_usd: nn, funding_round: ns(), investors: arr,
+        },
+        required: ['signal_type', 'summary', 'evidence_excerpt', 'funding_amount_usd'],
+      },
+    },
     opportunities: {
       type: 'array',
       maxItems: 3,
@@ -67,6 +95,8 @@ export interface ExtractionOutput {
   reason: string | null;
   projectStage: (typeof STAGES)[number];
   opportunities: ExtractedOpportunity[];
+  project: ExtractedProject | null;
+  signals: ExtractedSignal[];
   rejected: number;
   tokens: number;
 }
@@ -85,7 +115,7 @@ export function buildExtractionUserPrompt(doc: { url: string; title: string; pub
 /** Validates and cleans model output; drops malformed entries instead of trusting them. */
 export function parseExtraction(raw: unknown): Omit<ExtractionOutput, 'tokens'> {
   const top = ExtractionResultSchema.safeParse(raw);
-  if (!top.success) return { relevant: false, reason: 'invalid_model_output', projectStage: 'unknown', opportunities: [], rejected: 1 };
+  if (!top.success) return { relevant: false, reason: 'invalid_model_output', projectStage: 'unknown', opportunities: [], project: null, signals: [], rejected: 1 };
   const opportunities: ExtractedOpportunity[] = [];
   let rejected = 0;
   for (const o of top.data.opportunities) {
@@ -98,7 +128,17 @@ export function parseExtraction(raw: unknown): Omit<ExtractionOutput, 'tokens'> 
     if (v.reward_amount_max !== null && v.reward_amount !== null && v.reward_amount_max < v.reward_amount) v.reward_amount_max = null;
     opportunities.push(v);
   }
-  return { relevant: top.data.is_relevant && opportunities.length > 0, reason: top.data.irrelevance_reason, projectStage: top.data.project_stage, opportunities, rejected };
+  const pr = ExtractedProjectSchema.safeParse((raw as { project?: unknown })?.project);
+  let project: ExtractedProject | null = pr.success && pr.data.name ? pr.data : null;
+  if (project?.website && !isSafePublicUrl(project.website.startsWith('http') ? project.website : `https://${project.website}`)) project = { ...project, website: null };
+  const signals: ExtractedSignal[] = [];
+  const rawSignals = (raw as { signals?: unknown })?.signals;
+  for (const sg of Array.isArray(rawSignals) ? rawSignals.slice(0, 5) : []) {
+    const p = ExtractedSignalSchema.safeParse(sg);
+    if (p.success && !['deadline_change', 'reward_change', 'announcement_changed'].includes(p.data.signal_type)) signals.push(p.data); else rejected++;
+  }
+  const relevant = top.data.is_relevant && (opportunities.length > 0 || (project !== null && signals.length > 0));
+  return { relevant, reason: top.data.irrelevance_reason, projectStage: top.data.project_stage, opportunities, project, signals, rejected };
 }
 
 export async function extractOpportunities(gemini: GeminiOptions, doc: { url: string; title: string; publishedAt?: string | null; text: string }, maxChars: number, today = new Date()): Promise<ExtractionOutput> {

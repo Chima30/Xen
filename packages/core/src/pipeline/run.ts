@@ -10,6 +10,8 @@ import { DEFAULT_PROFILE, tierOf, type CollectedItem, type ExtractedOpportunity,
 import { canonicalizeUrl, isSafePublicUrl, registrableDomain } from '../url';
 import { verifyOpportunity } from '../verification';
 import { Repo, type Job } from './repo';
+import { notifyWatchers, recordAnnouncementChange, recordSignals, upsertProjectProfile } from '../intelligence/projects';
+import { alternativesQuery } from '../intelligence/similar';
 
 /**
  * Pipeline:
@@ -40,7 +42,7 @@ export function adapterContext(d: PipelineDeps): AdapterContext {
 // ---------------------------------------------------------------------------
 export interface CollectStats { fetched: number; newItems: number; changed: number; filteredOut: number; queued: number; note?: string }
 
-export async function ingestItems(d: PipelineDeps, items: CollectedItem[], sourceId: string | null): Promise<CollectStats> {
+export async function ingestItems(d: PipelineDeps, items: CollectedItem[], sourceId: string | null, projectId: string | null = null): Promise<CollectStats> {
   const stats: CollectStats = { fetched: items.length, newItems: 0, changed: 0, filteredOut: 0, queued: 0 };
   const seen = new Set<string>();
   for (const item of items) {
@@ -52,20 +54,23 @@ export async function ingestItems(d: PipelineDeps, items: CollectedItem[], sourc
     const hash = await contentHash(`${item.title}\n${body || item.snippet}`);
     const pf = prefilter(`${item.title}\n${item.snippet}\n${body.slice(0, 4000)}`);
 
-    const existing = await d.repo.db.from('announcements').select('id, content_hash, analysis_state').eq('canonical_url', canonical).maybeSingle();
+    const existing = await d.repo.db.from('announcements').select('id, content_hash, analysis_state, project_id').eq('canonical_url', canonical).maybeSingle();
     let announcementId: string;
+    let previous: { hash: string; text: string } | null = null;
     if (existing.data) {
       announcementId = existing.data.id;
-      await d.repo.db.from('announcements').update({ last_seen_at: new Date().toISOString() }).eq('id', announcementId);
+      await d.repo.db.from('announcements').update({ last_seen_at: new Date().toISOString(), ...(projectId && !existing.data.project_id ? { project_id: projectId } : {}) }).eq('id', announcementId);
       if (existing.data.content_hash === hash) continue; // unchanged → nothing to do
       stats.changed++;
+      const prev = await d.repo.db.from('announcement_versions').select('content').eq('announcement_id', announcementId).eq('content_hash', existing.data.content_hash).maybeSingle();
+      if (prev.data?.content) previous = { hash: existing.data.content_hash, text: prev.data.content };
       await d.repo.db.from('announcements').update({ content_hash: hash, analysis_state: pf.pass ? 'pending' : 'filtered_out' }).eq('id', announcementId);
     } else {
       // Same content under a different URL (syndication) → skip
       const dup = await d.repo.db.from('announcements').select('id').eq('content_hash', hash).limit(1);
       if (dup.data?.length) continue;
       const ins = await d.repo.db.from('announcements').insert({
-        source_id: sourceId, canonical_url: canonical, title: item.title.slice(0, 500), published_at: item.publishedAt ?? null,
+        source_id: sourceId, project_id: projectId, canonical_url: canonical, title: item.title.slice(0, 500), published_at: item.publishedAt ?? null,
         content_hash: hash, excerpt: item.snippet.slice(0, 1000), analysis_state: pf.pass ? 'pending' : 'filtered_out',
       }).select('id').single();
       if (ins.error) { if (ins.error.code === '23505') continue; throw new Error(`insert announcement: ${ins.error.message}`); }
@@ -73,6 +78,12 @@ export async function ingestItems(d: PipelineDeps, items: CollectedItem[], sourc
       stats.newItems++;
     }
     if (body) await d.repo.db.from('announcement_versions').upsert({ announcement_id: announcementId, content_hash: hash, content: body }, { onConflict: 'announcement_id,content_hash', ignoreDuplicates: true });
+    // Change detection: compare with the previous snapshot and tell watchers when it matters.
+    if (previous && body) {
+      const pid = projectId ?? existing.data?.project_id ?? null;
+      const ch = await recordAnnouncementChange(d.repo, { announcementId, projectId: pid, url: canonical, fromHash: previous.hash, toHash: hash, before: previous.text, after: body });
+      if (ch.signal) await d.repo.enqueue('watch_notify', { signalId: ch.signal.id }, `watch_notify:signal:${ch.signal.id}`, 85);
+    }
     if (!pf.pass) { stats.filteredOut++; continue; }
     if (await d.repo.enqueue('analyze', { announcementId, url: item.url, title: item.title, publishedAt: item.publishedAt ?? null, hash }, `analyze:${announcementId}:${hash}`, 60 + pf.score)) stats.queued++;
   }
@@ -87,7 +98,8 @@ export async function collectSource(d: PipelineDeps, source: { id: string; adapt
   const started = Date.now();
   try {
     const res = await adapter.fetch(config, adapterContext(d), source.cursor);
-    const stats = await ingestItems(d, res.items, source.id);
+    const linked = (await d.repo.db.from('sources').select('project_id').eq('id', source.id).maybeSingle()).data?.project_id ?? null;
+    const stats = await ingestItems(d, res.items, source.id, linked);
     stats.note = res.note;
     await d.repo.db.from('source_health').insert({ source_id: source.id, adapter_id: source.adapter_id, ok: true, items_fetched: res.items.length, duration_ms: Date.now() - started });
     await d.repo.db.from('sources').update({ last_success_at: new Date().toISOString(), last_error: null, consecutive_failures: 0, cursor: res.cursor ?? source.cursor ?? null }).eq('id', source.id);
@@ -152,36 +164,34 @@ export async function analyzeAnnouncement(d: PipelineDeps, p: { announcementId: 
     return { status: 'irrelevant', opportunities: [], tokens: ext.tokens };
   }
 
+  // Project Intelligence: the main project's profile and its evidence-backed signals.
+  let mainProjectId: string | null = null;
+  if (ext.project?.name) {
+    // Profile facts must be in the source: keep only ecosystems the text actually names.
+    const lower = text.toLowerCase();
+    const ecosystems = ext.project.ecosystems.filter((e) => lower.includes(e.toLowerCase()));
+    mainProjectId = await upsertProjectProfile(repo, { ...ext.project, ecosystems, name: ext.project.name }, ext.projectStage);
+    if (mainProjectId) {
+      await repo.db.from('announcements').update({ project_id: mainProjectId }).eq('id', p.announcementId).is('project_id', null);
+      const sig = await recordSignals(repo, mainProjectId, ext.signals, { url: finalUrl, text, announcementId: p.announcementId });
+      for (const st of sig.stored) await repo.enqueue('watch_notify', { signalId: st.id }, `watch_notify:signal:${st.id}`, 85);
+      if (sig.stored.length || sig.rejected) await repo.log('intelligence', 'signals', `${sig.stored.length} signal(s) stored, ${sig.rejected} rejected (evidence not in source) for ${ext.project.name}`, { url: finalUrl });
+    }
+  }
+
   const out: AnalyzeResult['opportunities'] = [];
   for (const x of ext.opportunities) {
-    const projectId = x.project_name ? await upsertProject(repo, x, ext.projectStage) : null;
+    const projectId = x.project_name ? await upsertProjectProfile(repo, { name: x.project_name, website: x.project_website }, ext.projectStage) : mainProjectId;
     const knownDomain = projectId ? (await repo.db.from('projects').select('website_domain').eq('id', projectId).single()).data?.website_domain : null;
     const ver = verifyOpportunity({ sourceUrl: finalUrl, sourceText: text, extracted: x, knownProjectDomain: knownDomain });
     const sc = scoreOpportunity({ extracted: x, rewardStatus: ver.rewardStatus, verification: ver.status, confidence: ver.confidence, profile: d.profile ?? DEFAULT_PROFILE });
     const stored = await upsertOpportunity(repo, { x, ver, sc, projectId, announcementId: p.announcementId, sourceUrl: finalUrl, publishedAt });
     out.push({ id: stored.id, isNew: stored.isNew, score: sc.score, notify: sc.notifyEligible });
     if (stored.isNew && sc.notifyEligible) await repo.enqueue('notify', { opportunityId: stored.id }, `notify:${stored.id}`, 80);
+    if (stored.isNew && projectId) await repo.enqueue('watch_notify', { opportunityId: stored.id }, `watch_notify:opp:${stored.id}`, 85);
   }
   await repo.db.from('announcements').update({ analysis_state: 'analyzed' }).eq('id', p.announcementId);
   return { status: 'stored', opportunities: out, tokens: ext.tokens };
-}
-
-async function upsertProject(repo: Repo, x: ExtractedOpportunity, stage: string): Promise<string | null> {
-  const name = x.project_name!.trim().slice(0, 120);
-  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-  if (!slug) return null;
-  const website = x.project_website ? (x.project_website.startsWith('http') ? x.project_website : `https://${x.project_website}`) : null;
-  const existing = await repo.db.from('projects').select('id, website, stage').eq('slug', slug).maybeSingle();
-  if (existing.data) {
-    const patch: Record<string, unknown> = { last_monitored_at: new Date().toISOString() };
-    if (!existing.data.website && website) { patch.website = website; patch.website_domain = registrableDomain(website); }
-    if (existing.data.stage === 'unknown' && stage !== 'unknown') patch.stage = stage;
-    await repo.db.from('projects').update(patch).eq('id', existing.data.id);
-    return existing.data.id;
-  }
-  const ins = await repo.db.from('projects').insert({ slug, name, website, website_domain: website ? registrableDomain(website) : null, stage, last_monitored_at: new Date().toISOString() }).select('id').single();
-  if (ins.error) return (await repo.db.from('projects').select('id').eq('slug', slug).single()).data?.id ?? null;
-  return ins.data.id;
 }
 
 export async function opportunityDedupeKey(canonicalUrl: string, title: string): Promise<string> {
@@ -380,7 +390,28 @@ export async function runJob(d: PipelineDeps, job: Job): Promise<void> {
     case 'purge':
       await d.repo.db.rpc('purge_expired_data');
       return;
+    case 'watch_notify': {
+      const ev = job.payload.signalId ? { kind: 'signal' as const, signalId: String(job.payload.signalId) } : { kind: 'opportunity' as const, opportunityId: String(job.payload.opportunityId) };
+      const r = await notifyWatchers(d, ev);
+      if (r.recorded) await d.repo.log('monitoring', 'watch_notify', `${r.recorded} watcher update(s), ${r.sent} sent to Telegram`, { ...job.payload });
+      return;
+    }
     default:
       throw new Error(`Unknown job kind ${job.kind}`);
   }
+}
+
+/**
+ * Competitor discovery, web part: one Tavily search for alternatives to a project. Results go
+ * through the normal ingest → analysis pipeline, so new projects get profiles and signals the
+ * usual way. Costs one Tavily credit (cached 24 h) and respects the daily budget.
+ */
+export async function searchAlternatives(d: PipelineDeps, projectId: string): Promise<CollectStats & { query: string }> {
+  const p = (await d.repo.db.from('projects').select('name, category').eq('id', projectId).single()).data;
+  if (!p) throw new Error('Project not found');
+  const query = alternativesQuery(p.name, p.category);
+  const res = await ADAPTERS.tavily!.fetch({ queries: [query] }, adapterContext(d));
+  const stats = await ingestItems(d, res.items, null);
+  await d.repo.log('intelligence', 'alternatives', `Searched alternatives to ${p.name}: ${res.items.length} results, ${stats.queued} queued for analysis`, { query, note: res.note });
+  return { ...stats, note: res.note, query };
 }

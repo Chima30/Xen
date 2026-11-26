@@ -1,6 +1,6 @@
 import type { CollectedItem } from '../types';
-import { fetchWithRetry, type RequestBudget } from '../http';
-import { htmlToText } from '../text';
+import { fetchPublicPage, fetchWithRetry, type RequestBudget } from '../http';
+import { extractTitle, htmlToText } from '../text';
 import { tavilySearch } from '../providers/tavily';
 import { assertSafePublicUrl } from '../url';
 
@@ -178,6 +178,22 @@ export const defillamaAdapter: SourceAdapter = {
   },
 };
 
+// ---------------------------------------------------------------------------
+// One official page (watched project): the whole page text is one item, so a content
+// change shows up as a changed announcement and is diffed against the previous snapshot.
+// ---------------------------------------------------------------------------
+export const pageAdapter: SourceAdapter = {
+  id: 'page',
+  requires: [],
+  async fetch(config, ctx) {
+    const url = assertSafePublicUrl(String(config.url)).toString();
+    const page = await fetchPublicPage(url, { budget: ctx.budget });
+    const text = htmlToText(page.html).slice(0, 30_000);
+    const title = extractTitle(page.html) ?? new URL(page.finalUrl).host;
+    return { items: [{ adapterId: 'page', url: page.finalUrl, title, snippet: text.slice(0, 500), publishedAt: null, content: text }] };
+  },
+};
+
 export const ADAPTERS: Record<string, SourceAdapter> = {
-  tavily: tavilyAdapter, rss: rssAdapter, reddit: redditAdapter, github: githubAdapter, defillama: defillamaAdapter,
+  tavily: tavilyAdapter, rss: rssAdapter, reddit: redditAdapter, github: githubAdapter, defillama: defillamaAdapter, page: pageAdapter,
 };
