@@ -54,7 +54,7 @@ function buildGeometry(count: number) {
     const k = i + 0.5;
     const phi = Math.acos(1 - (2 * k) / count);
     const theta = Math.PI * (1 + Math.sqrt(5)) * k + rnd() * 0.02;
-    const shell = rnd() < 0.85 ? 1 + (rnd() - 0.5) * 0.02 : 1 + rnd() * 0.18;
+    const shell = rnd() < 0.93 ? 1 + (rnd() - 0.5) * 0.03 : 1 + rnd() * 0.12;
     v.setFromSphericalCoords(shell, phi, theta);
     pos.set([v.x, v.y, v.z], i * 3);
     // Cluster target: nearest of six centres, spread in a small soft ball.
@@ -99,7 +99,7 @@ export function ParticleSphere({ count, signals, radius = 1, baseY = -1.05, stil
         uniforms: {
           uTime: { value: 0 },
           uPixelRatio: { value: 1 },
-          uSize: { value: 7.5 },
+          uSize: { value: 10 },
           uMorph: { value: 0 },
           uActivity: { value: 0 },
           uPulse: { value: 0 },
@@ -135,7 +135,7 @@ export function ParticleSphere({ count, signals, radius = 1, baseY = -1.05, stil
     d.morph += (s.morph - d.morph) * k(3);
     d.activity += (s.activity - d.activity) * k(1.5);
     // Shrinks as it rises so the whole sphere stays recognisable in view.
-    d.scale += (radius * (1 - 0.42 * s.rise) - d.scale) * k(4);
+    d.scale += (radius * (1 - 0.12 * s.rise) - d.scale) * k(4);
     group.current.scale.setScalar(d.scale);
     group.current.position.set(d.x, d.y, 0);
     camera.position.z = 3.4 - s.rise * 0.35;

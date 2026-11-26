@@ -90,10 +90,10 @@ void main(){
   float region = smoothstep(0.15, 0.85, snoise(dir * 0.9 + vec3(t * 0.03)) * 0.5 + 0.5);
   // Limb: particles near the silhouette catch the light, which draws the sphere's outline.
   float rim = pow(1.0 - abs(nView.z), 2.5);
-  vLight = (0.26 + 0.74 * lambert) * (0.45 + 0.55 * facing) * (0.75 + 0.5 * region) + rim * (0.35 + 0.65 * lambert) + ring * 1.2 + uActivity * 0.08;
+  vLight = (0.55 + 0.45 * lambert) * (0.62 + 0.38 * facing) * (0.8 + 0.4 * region) + rim * (0.25 + 0.45 * lambert) + ring * 1.2 + uActivity * 0.08;
   vTone = aTone;
   vSpark = step(0.985, fract(aSeed * 91.7 + floor(t * 0.25 + aSeed * 3.0) * 0.37));
-  vAlpha = uReveal * (0.35 + 0.65 * facing + rim * 0.4);
+  vAlpha = uReveal * (0.5 + 0.5 * facing + rim * 0.3);
 
   float size = aSize * (1.0 + ring * 1.5 + vSpark * 0.8);
   gl_PointSize = size * uSize * uPixelRatio * (1.0 / -mv.z);

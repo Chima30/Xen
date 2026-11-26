@@ -67,22 +67,22 @@ export function LandingCore({ status }: { status?: React.ReactNode }) {
         <XenIntelligenceCore
           signals={signals}
           className="xen-intro-core absolute inset-0"
-          radius={mobile ? 0.95 : 1.6}
-          baseY={mobile ? -1.42 : -1.86}
+          radius={mobile ? 0.6 : 0.75}
+          baseY={mobile ? -0.96 : -1.07}
         />
       </div>
 
       <section ref={hero} id="top" aria-labelledby="hero-title" className="relative z-10 flex min-h-[100svh] flex-col">
-        <Container className="flex flex-1 flex-col items-center pt-[22svh] text-center md:pt-[20svh]">
-          <Eyebrow className="xen-intro-1">XEN Intelligence</Eyebrow>
-          <h1 id="hero-title" className="xen-display mt-5 text-[clamp(2.75rem,6vw,5.375rem)] text-white">
+        <Container className="flex flex-1 flex-col items-center pt-[20svh] text-center md:pt-[17svh]">
+          <Eyebrow className="xen-intro-1 tracking-[0.3em] text-xen-mist">XEN Intelligence</Eyebrow>
+          <h1 id="hero-title" className="xen-display mt-6 text-[clamp(2.5rem,4.45vw,4rem)] text-white">
             <span className="xen-intro-2 block">Discover opportunities</span>
             <span className="xen-intro-3 block">before the crowd.</span>
           </h1>
-          <p className="xen-intro-4 mt-6 max-w-[34rem] text-base leading-relaxed text-xen-silver md:text-[17px]">
+          <p className="xen-intro-4 mt-6 max-w-[52rem] text-[15px] leading-relaxed text-xen-mist/85">
             An intelligence network that finds paid Web3 opportunities, emerging protocols and early-stage platforms for you.
           </p>
-          <div className="xen-intro-5 mt-9">
+          <div className="xen-intro-5 mt-8">
             <AuroraButton href="#live">Explore opportunities</AuroraButton>
           </div>
         </Container>
