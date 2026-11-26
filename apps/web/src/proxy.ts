@@ -6,6 +6,8 @@ import { NextResponse, type NextRequest } from "next/server";
  * Machine endpoints (/api/pipeline, /api/health) authenticate themselves and are excluded.
  */
 const PUBLIC_PATHS = ["/login", "/auth/"];
+/** The marketing site is public; everything else is the signed-in app. */
+const isPublic = (path: string) => path === "/" || PUBLIC_PATHS.some((p) => path.startsWith(p));
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -26,7 +28,7 @@ export async function proxy(request: NextRequest) {
 
   const { data } = await supabase.auth.getUser();
   const path = request.nextUrl.pathname;
-  if (!data.user && !PUBLIC_PATHS.some((p) => path.startsWith(p)) && !path.startsWith("/api/")) {
+  if (!data.user && !isPublic(path) && !path.startsWith("/api/")) {
     const login = request.nextUrl.clone();
     login.pathname = "/login";
     login.search = "";

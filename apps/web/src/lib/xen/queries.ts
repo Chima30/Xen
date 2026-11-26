@@ -245,6 +245,10 @@ export async function getOverview() {
  * Alerts the user has received. Alerts to the configured owner chat are stored without a
  * user_id (the owner chat is not tied to a web account), so the owner also sees those.
  */
+export async function getRecentAlerts(limit: number) {
+  return loadAlerts(await getCurrentUser(), limit);
+}
+
 async function loadAlerts(user: CurrentUser, limit: number) {
   const db = await createUserClient();
   const own = await db.from("notifications").select("id, kind, status, created_at, sent_at, opportunity_id, payload").eq("user_id", user.id).order("created_at", { ascending: false }).limit(limit);

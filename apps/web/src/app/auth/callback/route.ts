@@ -5,7 +5,7 @@ import { createUserClient } from "@/lib/supabase/server";
 export async function GET(request: NextRequest) {
   const code = request.nextUrl.searchParams.get("code");
   const nextParam = request.nextUrl.searchParams.get("next") ?? "/";
-  const next = nextParam.startsWith("/") && !nextParam.startsWith("//") ? nextParam : "/";
+  const next = nextParam.startsWith("/") && !nextParam.startsWith("//") ? nextParam : "/overview";
   if (code) {
     const supabase = await createUserClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);

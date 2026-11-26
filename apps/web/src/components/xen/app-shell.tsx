@@ -10,11 +10,12 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { cn } from "@/lib/utils";
 import { CommandPalette } from "./command-palette";
 import { isActiveExact, NAV } from "./nav";
-import { ThemeToggle } from "./theme-toggle";
+import { XenLogo } from "@/components/brand/xen-mark";
+import { LiveProvider, NotificationBell, SourceStatus } from "./live-status";
 
 const STORAGE_KEY = "xen.sidebar.collapsed";
 
-export function AppShell({ children, userMenu }: { children: React.ReactNode; userMenu: React.ReactNode }) {
+export function AppShell({ children, userMenu, ownerTools }: { children: React.ReactNode; userMenu: React.ReactNode; ownerTools?: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -34,6 +35,7 @@ export function AppShell({ children, userMenu }: { children: React.ReactNode; us
   };
 
   return (
+    <LiveProvider>
     <div className="flex min-h-dvh">
       <aside
         className={cn(
@@ -56,7 +58,7 @@ export function AppShell({ children, userMenu }: { children: React.ReactNode; us
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-12 items-center gap-2 border-b bg-background/95 px-3 backdrop-blur supports-[backdrop-filter]:bg-background/80 md:px-5">
+        <header className="sticky top-0 z-30 flex h-12 items-center gap-2 border-b bg-background/92 px-3 backdrop-blur-[6px] md:px-5">
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon-sm" className="md:hidden" aria-label="Open navigation">
@@ -83,7 +85,9 @@ export function AppShell({ children, userMenu }: { children: React.ReactNode; us
             <kbd className="ml-auto hidden rounded border bg-muted px-1 font-mono text-2xs sm:inline">Ctrl K</kbd>
           </button>
           <div className="flex shrink-0 items-center gap-1 md:ml-auto">
-            <ThemeToggle />
+            <SourceStatus />
+            {ownerTools}
+            <NotificationBell />
             {userMenu}
           </div>
         </header>
@@ -91,14 +95,14 @@ export function AppShell({ children, userMenu }: { children: React.ReactNode; us
       </div>
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
     </div>
+    </LiveProvider>
   );
 }
 
 function Brand({ compact = false }: { compact?: boolean }) {
   return (
-    <Link href="/" className="flex items-baseline gap-2 rounded-sm outline-offset-2">
-      <span className="font-mono text-sm font-semibold text-foreground">XEN</span>
-      {!compact && <span className="text-xs text-muted-foreground">Opportunity intelligence</span>}
+    <Link href="/overview" aria-label="XEN overview" className="rounded-sm outline-offset-2">
+      <XenLogo compact={compact} />
     </Link>
   );
 }

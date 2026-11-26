@@ -11,7 +11,7 @@ export const NAV: NavGroup[] = [
   {
     label: "Intelligence",
     items: [
-      { href: "/", label: "Overview", icon: Gauge, keywords: "home dashboard" },
+      { href: "/overview", label: "Overview", icon: Gauge, keywords: "home dashboard" },
       { href: "/discover", label: "Discover", icon: Compass, keywords: "all opportunities search filter" },
     ],
   },

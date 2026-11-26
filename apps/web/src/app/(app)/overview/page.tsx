@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { ArrowRight, CheckCircle2, CircleAlert } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DiscoveryChart } from "@/components/xen/discovery-chart";
+import { OverviewCore } from "@/components/xen/live-status";
 import { OpportunityTable } from "@/components/xen/opportunity-table";
 import { EmptyState, PageHeader, Pill, Section } from "@/components/xen/status";
 import { cn } from "@/lib/utils";
@@ -16,7 +17,11 @@ export const metadata: Metadata = { title: "Overview" };
 export default function OverviewPage() {
   return (
     <div className="space-y-6">
-      <PageHeader title="Overview" description="What XEN found, what needs you, and how the system is running" />
+      <div className="relative">
+        <PageHeader title="Overview" description="What XEN found, what needs you, and how the system is running" />
+        {/* Compact Intelligence Core: rests when idle, reacts to real scans and discoveries */}
+        <OverviewCore className="absolute -top-4 right-0 hidden h-24 w-48 md:block" />
+      </div>
       <Suspense fallback={<OverviewSkeleton />}>
         <Overview />
       </Suspense>
@@ -45,12 +50,17 @@ async function Overview() {
           <div key={t.label} className="bg-card">
             <Link href={t.href} className="block h-full p-4 transition-colors hover:bg-muted/40">
               <dt className="text-xs text-muted-foreground">{t.label}</dt>
-              <dd className="mt-2 font-mono text-2xl font-medium tabular-nums">{t.value ?? <span title="Could not load">—</span>}</dd>
+              <dd className="xen-numeral mt-2 font-mono text-2xl font-medium">{t.value ?? <span title="Could not load">—</span>}</dd>
               <p className="mt-1 text-2xs text-muted-foreground">{t.hint}</p>
             </Link>
           </div>
         ))}
       </dl>
+      <p className="-mt-3 text-xs text-muted-foreground">
+        Active applications <span className="xen-numeral font-mono">{d.counts.activeApplications ?? "—"}</span>
+        <span className="mx-2">·</span>
+        Upcoming deadlines (14 days) <span className="xen-numeral font-mono">{d.deadlines.length}</span>
+      </p>
 
       <div className="grid gap-6 lg:grid-cols-3">
         <Section title="Discovery activity" description="Opportunities stored per day, Lagos time" className="lg:col-span-2">

@@ -27,7 +27,7 @@ export function LoginForm() {
         return;
       }
       // Refresh so server components see the new session cookies.
-      router.replace("/");
+      router.replace("/overview");
       router.refresh();
       return;
     }

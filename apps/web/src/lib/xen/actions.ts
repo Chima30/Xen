@@ -19,7 +19,7 @@ function refreshOpportunity(id: string) {
   revalidatePath(`/opportunities/${id}`);
   revalidatePath("/discover", "layout");
   revalidatePath("/saved");
-  revalidatePath("/");
+  revalidatePath("/overview");
 }
 
 export async function setSaved(opportunityId: string, saved: boolean): Promise<ActionResult> {
@@ -242,4 +242,39 @@ export async function setQueryEnabled(query: string, enabled: boolean): Promise<
 // ---------------------------------------------------------------------------
 export async function paletteSearch(term: string) {
   return searchOpportunityTitles(term);
+}
+
+// ---------------------------------------------------------------------------
+// Manual discovery (owner only): one real pipeline tick, recorded like a scheduled run
+// ---------------------------------------------------------------------------
+export async function runManualScan(): Promise<ActionResult> {
+  let user;
+  try { user = await requireOwner(); } catch (e) { return fail((e as Error).message); }
+  const { Repo, RequestBudget, runTick } = await import("@xen/core");
+  const { serverEnv } = await import("@/lib/env");
+  const admin = createAdminClient();
+  const repo = new Repo(admin);
+  const scan = await admin.from("scan_history").insert({ trigger: "manual (dashboard)" }).select("id").single();
+  let error: string | null = null;
+  let stats: Awaited<ReturnType<typeof runTick>> | null = null;
+  try {
+    stats = await runTick(
+      { env: serverEnv(), repo, budget: new RequestBudget(80), workerId: `manual-${crypto.randomUUID().slice(0, 8)}` },
+      { maxSources: 2, maxJobs: 3 },
+    );
+  } catch (e) {
+    error = e instanceof Error ? e.message : String(e);
+  }
+  if (scan.data) await admin.from("scan_history").update({ finished_at: new Date().toISOString(), stats: stats ?? {}, error }).eq("id", scan.data.id);
+  await admin.from("audit_logs").insert({ actor_user_id: user.id, actor: "user", action: "pipeline.manual_scan", metadata: { error, jobsRun: stats?.jobsRun ?? 0 } });
+  revalidatePath("/overview");
+  revalidatePath("/activity");
+  if (error) return fail(`Scan failed: ${error}`);
+  return { ok: true, message: `Scan finished: ${stats!.jobsRun} jobs run, ${stats!.jobsFailed} failed` };
+}
+
+/** Latest alerts for the header bell. */
+export async function latestAlerts() {
+  const { getRecentAlerts } = await import("./queries");
+  return getRecentAlerts(6);
 }

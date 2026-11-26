@@ -2,91 +2,77 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-/* Dark mode is class-based (next-themes sets .dark on <html>; default follows the OS). */
+/* XEN is a dark-only system: one deep-teal environment for the site and the app. */
 @custom-variant dark (&:is(.dark *));
 
 /*
- * XEN design tokens: graphite surfaces, cool neutrals, one teal accent (--primary).
- * shadcn/ui token names are used throughout; --ok / --warn add status colors.
+ * XEN brand palette (source of truth). Everything below maps onto these.
  */
 :root {
-  --radius: 0.5rem;
-  --background: oklch(0.985 0.002 240);
-  --foreground: oklch(0.21 0.012 240);
-  --card: oklch(1 0 0);
-  --card-foreground: var(--foreground);
-  --popover: oklch(1 0 0);
-  --popover-foreground: var(--foreground);
-  --primary: oklch(0.55 0.1 186);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.955 0.004 240);
-  --secondary-foreground: var(--foreground);
-  --muted: oklch(0.955 0.004 240);
-  --muted-foreground: oklch(0.5 0.013 240);
-  --accent: oklch(0.948 0.006 220);
-  --accent-foreground: var(--foreground);
-  --destructive: oklch(0.55 0.2 27);
-  --ok: oklch(0.52 0.12 155);
-  --warn: oklch(0.6 0.13 70);
-  --border: oklch(0.905 0.005 240);
-  --input: oklch(0.885 0.006 240);
-  --ring: oklch(0.55 0.1 186);
-  --chart-1: oklch(0.58 0.115 178); /* validated: chroma >= 0.1, contrast >= 3:1 on light surface */
-  --chart-2: oklch(0.6 0.08 230);
-  --chart-3: oklch(0.7 0.05 200);
-  --chart-4: oklch(0.5 0.02 240);
-  --chart-5: oklch(0.75 0.02 240);
-  --sidebar: oklch(0.97 0.003 240);
-  --sidebar-foreground: var(--foreground);
-  --sidebar-primary: var(--primary);
-  --sidebar-primary-foreground: var(--primary-foreground);
-  --sidebar-accent: oklch(0.935 0.006 230);
-  --sidebar-accent-foreground: var(--foreground);
-  --sidebar-border: var(--border);
-  --sidebar-ring: var(--ring);
-}
+  --xen-abyss: #012624;
+  --xen-deep: #011d1c;
+  --xen-kelp: #003734;
+  --xen-mist: #edfffe;
+  --xen-white: #ffffff;
+  --xen-silver: #bbc7c6;
+  --xen-ash: #f2f2f2;
+  --xen-slate: #707777;
+  --xen-phosphor: #fde9ff;
+  --xen-bioluminescent: #00827c;
+  --xen-cyan: #cbfffc;
 
-.dark {
-  --background: oklch(0.165 0.006 240);
-  --foreground: oklch(0.935 0.004 240);
-  --card: oklch(0.198 0.007 240);
-  --card-foreground: var(--foreground);
-  --popover: oklch(0.215 0.008 240);
-  --popover-foreground: var(--foreground);
-  --primary: oklch(0.78 0.12 182);
-  --primary-foreground: oklch(0.21 0.04 186);
-  --secondary: oklch(0.245 0.008 240);
-  --secondary-foreground: var(--foreground);
-  --muted: oklch(0.245 0.008 240);
-  --muted-foreground: oklch(0.67 0.012 240);
-  --accent: oklch(0.265 0.01 230);
-  --accent-foreground: var(--foreground);
-  --destructive: oklch(0.7 0.17 22);
-  --ok: oklch(0.76 0.14 155);
-  --warn: oklch(0.8 0.13 80);
-  --border: oklch(1 0 0 / 9%);
-  --input: oklch(1 0 0 / 14%);
-  --ring: oklch(0.78 0.12 182);
-  --chart-1: oklch(0.66 0.11 184); /* validated against the dark card surface */
-  --chart-2: oklch(0.7 0.09 230);
-  --chart-3: oklch(0.6 0.06 200);
-  --chart-4: oklch(0.55 0.02 240);
-  --chart-5: oklch(0.42 0.02 240);
-  --sidebar: oklch(0.145 0.006 240);
-  --sidebar-foreground: var(--foreground);
-  --sidebar-primary: var(--primary);
-  --sidebar-primary-foreground: var(--primary-foreground);
-  --sidebar-accent: oklch(0.22 0.009 235);
-  --sidebar-accent-foreground: var(--foreground);
-  --sidebar-border: var(--border);
+  --xen-aurora-gradient: linear-gradient(90deg, #cbfffc 0%, #edfffe 26.25%, #fffdfa 47.57%, #fad1ff 88.96%);
+  --xen-liquid-gradient: linear-gradient(90deg, #00827c 0%, #cbfffc 100%);
+
+  --xen-radius-card: 16px;
+  --xen-radius-button: 6px;
+  --xen-radius-small: 6px;
+  --xen-max-width: 1440px;
+
+  --xen-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* shadcn/ui roles mapped to the palette */
+  --radius: 0.375rem; /* 6px controls */
+  --background: var(--xen-abyss);
+  --foreground: var(--xen-white);
+  --card: var(--xen-kelp);
+  --card-foreground: var(--xen-white);
+  --popover: var(--xen-deep);
+  --popover-foreground: var(--xen-white);
+  --primary: var(--xen-cyan);
+  --primary-foreground: var(--xen-abyss);
+  --secondary: #01312e;
+  --secondary-foreground: var(--xen-mist);
+  --muted: #01302d;
+  --muted-foreground: var(--xen-silver);
+  --accent: #013f3b;
+  --accent-foreground: var(--xen-white);
+  --destructive: #ff8f80; /* functional only */
+  --ok: var(--xen-cyan);
+  --warn: #f3cf86; /* functional only */
+  --phosphor: var(--xen-phosphor);
+  --border: rgb(237 255 254 / 0.09);
+  --input: rgb(237 255 254 / 0.14);
+  --ring: rgb(203 255 252 / 0.6);
+  --chart-1: var(--xen-cyan);
+  --chart-2: var(--xen-bioluminescent);
+  --chart-3: var(--xen-silver);
+  --chart-4: var(--xen-slate);
+  --chart-5: var(--xen-phosphor);
+  --sidebar: var(--xen-deep);
+  --sidebar-foreground: var(--xen-white);
+  --sidebar-primary: var(--xen-cyan);
+  --sidebar-primary-foreground: var(--xen-abyss);
+  --sidebar-accent: #012e2b;
+  --sidebar-accent-foreground: var(--xen-white);
+  --sidebar-border: rgb(237 255 254 / 0.07);
   --sidebar-ring: var(--ring);
 }
 
 @theme inline {
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains), ui-monospace, monospace;
   --font-heading: var(--font-sans);
-  /* One small size for labels, meta and pills */
   --text-2xs: 0.6875rem;
   --text-2xs--line-height: 1rem;
   --color-background: var(--background);
@@ -106,6 +92,7 @@
   --color-destructive: var(--destructive);
   --color-ok: var(--ok);
   --color-warn: var(--warn);
+  --color-phosphor: var(--phosphor);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -122,10 +109,20 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
+  --color-xen-abyss: var(--xen-abyss);
+  --color-xen-deep: var(--xen-deep);
+  --color-xen-kelp: var(--xen-kelp);
+  --color-xen-mist: var(--xen-mist);
+  --color-xen-silver: var(--xen-silver);
+  --color-xen-slate: var(--xen-slate);
+  --color-xen-phosphor: var(--xen-phosphor);
+  --color-xen-bio: var(--xen-bioluminescent);
+  --color-xen-cyan: var(--xen-cyan);
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 16px;
+  --ease-xen: var(--xen-ease);
 }
 
 @layer base {
@@ -134,16 +131,56 @@
   }
   html {
     @apply font-sans;
-    color-scheme: light;
-  }
-  html.dark {
     color-scheme: dark;
+    background: var(--xen-abyss);
   }
   body {
     @apply bg-background text-foreground;
+  }
+  ::selection {
+    background: rgb(203 255 252 / 0.25);
+  }
+}
+
+@layer components {
+  /* Small uppercase section label */
+  .xen-eyebrow {
+    font-size: 0.6875rem;
+    line-height: 1rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--xen-silver);
+  }
+  /* Display type: medium weight, tight tracking, line height 1 */
+  .xen-display {
+    font-weight: 500;
+    letter-spacing: -0.044em;
+    line-height: 1;
+    text-wrap: balance;
+  }
+  .xen-numeral {
+    color: var(--xen-phosphor);
+    font-variant-numeric: tabular-nums;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
+
+/*
+ * Landing intro (~1.8s): nav, label, headline line by line, text, CTA; the sphere illuminates
+ * in WebGL. Opacity/transform only. Skipped on repeat visits and with reduced motion.
+ */
+@keyframes xen-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes xen-fade { from { opacity: 0; } to { opacity: 1; } }
+.xen-intro-nav { animation: xen-fade .6s var(--xen-ease) .1s both; }
+.xen-intro-1 { animation: xen-rise .7s var(--xen-ease) .25s both; }
+.xen-intro-2 { animation: xen-rise .8s var(--xen-ease) .4s both; }
+.xen-intro-3 { animation: xen-rise .8s var(--xen-ease) .55s both; }
+.xen-intro-4 { animation: xen-rise .7s var(--xen-ease) .8s both; }
+.xen-intro-5 { animation: xen-rise .7s var(--xen-ease) 1s both; }
+.xen-intro-core { animation: xen-fade 1.4s var(--xen-ease) .4s both; }
+html[data-intro="done"] :is(.xen-intro-nav, .xen-intro-1, .xen-intro-2, .xen-intro-3, .xen-intro-4, .xen-intro-5, .xen-intro-core) { animation: none; }
+html { scroll-behavior: smooth; }
