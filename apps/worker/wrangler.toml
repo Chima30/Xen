@@ -24,7 +24,8 @@ FEATURE_DISCORD = "false"
 FEATURE_REDDIT = "true"
 BUDGET_TAVILY_DAILY = "30"
 BUDGET_GEMINI_DAILY = "200"
-# PIPELINE_RUNNER_URL = "https://<your-app>.vercel.app/api/pipeline/tick"
+PIPELINE_RUNNER_URL = "https://xen-opal.vercel.app/api/pipeline/tick"
+APP_URL = "https://xen-opal.vercel.app"
 
 # Secrets (set with `wrangler secret put NAME`, never here):
 #   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, GEMINI_API_KEY, CRON_SECRET,
