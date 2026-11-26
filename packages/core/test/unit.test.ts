@@ -270,3 +270,22 @@ describe('http error messages', () => {
     expect(errorBodySummary('{"error":{"message":"quota exceeded"}}')).toBe('{"error":{"message":"quota exceeded"}}');
   });
 });
+
+describe('reward amount must appear as money in the source', () => {
+  it('accepts amounts written as money and rejects bare numbers', async () => {
+    const { amountAppearsAsMoney } = await import('../src/verification');
+    const src = 'Rewards by Threat Level\nCritical Max: $100,000 Min: $25,000\nLow Flat: $1000\nWe have 5000 users. Founded 2024. Testers earn 150 USDC each. Reward pool: 5k USDT.';
+    expect(amountAppearsAsMoney(src, 100000, 'USD')).toBe(true);
+    expect(amountAppearsAsMoney(src, 1000, 'USD')).toBe(true);
+    expect(amountAppearsAsMoney(src, 150, 'USDC')).toBe(true);
+    expect(amountAppearsAsMoney(src, 5000, 'USDT')).toBe(true); // "5k USDT"
+    expect(amountAppearsAsMoney('We have 5000 users and 2024 testers', 5000, 'USD')).toBe(false);
+    expect(amountAppearsAsMoney('Founded 2024.', 2024, null)).toBe(false);
+    expect(amountAppearsAsMoney('Prize: 10.5 ETH', 10, 'ETH')).toBe(false); // 10 is not 10.5
+    expect(amountAppearsAsMoney('The bounty offers 10,000 AERX credited as airdrop points', 10000, 'AERX points')).toBe(true);
+  });
+  it('checks the range maximum too', () => {
+    const v = verifyOpportunity({ sourceUrl: FIXTURE_SOURCE_URL, sourceText: FIXTURE_SOURCE_TEXT, extracted: fixtureExtraction({ reward_amount_max: 987654 }) });
+    expect(v.riskFlags).toContain('reward_amount_unsupported');
+  });
+});

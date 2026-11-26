@@ -131,13 +131,15 @@ export function verifyOpportunity(input: VerificationInput): VerificationResult 
   }
 
   // 7. Amount sanity: the stated amount should appear in the text
-  if (x.reward_amount !== null) {
-    const amt = String(x.reward_amount);
-    const flat = sourceText.replace(/(\d),(\d{3})/g, '$1$2').toLowerCase();
-    const kForm = x.reward_amount >= 1000 ? `${x.reward_amount / 1000}k` : null;
-    const present = new RegExp(`(^|[^\\d.])${amt.replace('.', '\\.')}(?![\\d])`).test(flat)
-      || (kForm !== null && new RegExp(`(^|[^\\d.])${kForm.replace('.', '\\.')}\\b`).test(flat));
-    checks.push({ name: 'reward_amount_in_source', passed: present, detail: present ? `Amount ${amt} appears in source` : `Amount ${amt} not found in source` });
+  // Every stated amount (and the range maximum) must appear in the source as money:
+  // next to a currency symbol or code, or a reward word, not just as any number on the page.
+  const amounts = [x.reward_amount, x.reward_amount_max].filter((a): a is number => a !== null);
+  if (amounts.length) {
+    const missing = amounts.filter((a) => !amountAppearsAsMoney(sourceText, a, x.reward_currency));
+    const present = missing.length === 0;
+    const shown = amounts.join('–');
+    checks.push({ name: 'reward_amount_in_source', passed: present,
+      detail: present ? `Amount ${shown} appears in the source as a reward` : `Amount ${missing.join(' and ')} not found in the source as a reward` });
     if (!present) riskFlags.push('reward_amount_unsupported');
   }
 
@@ -172,4 +174,29 @@ export function verifyOpportunity(input: VerificationInput): VerificationResult 
 
 function safeDomain(u: string): string | null {
   try { return registrableDomain(new URL(u.startsWith('http') ? u : `https://${u}`).hostname); } catch { return null; }
+}
+
+const MONEY_WORDS = String.raw`\$|€|£|₦|usd|usdc|usdt|dai|eth|btc|sol|ngn|eur|gbp|rewards?|bounty|prizes?|paid|pay|payout|grant|tokens?|points?`;
+
+/**
+ * True when `amount` appears in `text` with money context within a few characters:
+ * "$1,000", "1000 USDC", "USD 25000", "5k USDT", "reward: 300". Plain numbers such as
+ * "1000 users" or a year do not count.
+ */
+export function amountAppearsAsMoney(text: string, amount: number, currency?: string | null): boolean {
+  const flat = text.replace(/(\d),(\d{3})/g, '$1$2').toLowerCase();
+  const esc = (v: string) => v.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const forms = [String(amount)];
+  if (amount >= 1000 && amount % 100 === 0) forms.push(`${amount / 1000}k`);
+  if (amount >= 1_000_000 && amount % 100_000 === 0) forms.push(`${amount / 1_000_000}m`);
+  // A currency like "AERX points" also matches its parts ("AERX"), as sources often write only the ticker.
+  const cur = (currency ?? "").toLowerCase().split(/\s+/).filter((w) => w.length >= 2).map(esc);
+  const words = [MONEY_WORDS, ...cur].join("|");
+  for (const f of forms) {
+    const num = String.raw`(?<![\d.])` + esc(f) + String.raw`(?!\d|\.\d)`;
+    const before = new RegExp(String.raw`(?:${words})[\s:=]{0,3}(?:\$\s?)?` + num);
+    const after = new RegExp(num + String.raw`\s{0,2}(?:${words})`);
+    if (before.test(flat) || after.test(flat)) return true;
+  }
+  return false;
 }
