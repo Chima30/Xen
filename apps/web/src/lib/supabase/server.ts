@@ -1,6 +1,7 @@
 import "server-only";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 import { createServiceClient } from "@xen/core";
 import { serverEnv } from "../env";
 import { publicSupabaseEnv } from "./public-env";
@@ -9,6 +10,8 @@ import { publicSupabaseEnv } from "./public-env";
 export async function createUserClient() {
   // Read cookies first: it marks the caller as request-time, so the build never
   // prerenders past this point and missing env vars only fail real requests.
+  // connection() also covers prerender validation, where the auth client would otherwise read the clock.
+  await connection();
   const store = await cookies();
   const { url, anonKey } = publicSupabaseEnv();
   return createServerClient(url, anonKey, {

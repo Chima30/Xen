@@ -53,7 +53,7 @@ export function LoginForm() {
 
   const busy = state === "sending";
   const input =
-    "w-full rounded border border-border bg-surface-2 px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-accent";
+    "w-full rounded border border-input bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
   return (
     <form onSubmit={onSubmit} className="mt-5 space-y-3">
@@ -86,17 +86,17 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={busy}
-        className="w-full rounded bg-accent px-3 py-2 text-sm font-medium text-accent-contrast disabled:opacity-60"
+        className="w-full rounded bg-primary px-3 py-2 text-sm font-medium text-primary-foreground disabled:opacity-60"
       >
         {busy ? (mode === "password" ? "Signing in…" : "Sending…") : mode === "password" ? "Sign in" : "Send sign-in link"}
       </button>
       {message && (
-        <p role="status" className={`text-sm ${state === "error" ? "text-danger" : "text-ok"}`}>{message}</p>
+        <p role="status" className={`text-sm ${state === "error" ? "text-destructive" : "text-ok"}`}>{message}</p>
       )}
       <button
         type="button"
         onClick={() => switchMode(mode === "password" ? "link" : "password")}
-        className="text-sm text-muted underline-offset-4 hover:text-text hover:underline"
+        className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
       >
         {mode === "password" ? "Email me a sign-in link instead" : "Use my password instead"}
       </button>

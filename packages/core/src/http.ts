@@ -4,6 +4,15 @@ export class HttpError extends Error {
   constructor(message: string, public status: number, public retryable: boolean, public retryAfterMs?: number) { super(message); }
 }
 
+/** Short, readable error detail: API error bodies are kept, HTML error pages are reduced to their title. */
+export function errorBodySummary(body: string): string {
+  if (/^\s*(<!doctype html|<html)/i.test(body)) {
+    const title = body.match(/<title[^>]*>([^<]{1,120})<\/title>/i)?.[1]?.trim();
+    return title ? `HTML page "${title}"` : 'HTML page';
+  }
+  return body.replace(/\s+/g, ' ').trim().slice(0, 300);
+}
+
 /**
  * Tracks outbound requests per invocation. Cloudflare Workers Free allows 50
  * external subrequests per invocation, so the pipeline stops before hitting it.
@@ -42,7 +51,7 @@ export async function fetchWithRetry(url: string, opts: FetchOpts = {}): Promise
       const retryAfter = Number(res.headers.get('retry-after'));
       const retryable = res.status === 429 || res.status >= 500;
       const body = await res.text().catch(() => '');
-      lastErr = new HttpError(`HTTP ${res.status} from ${new URL(url).host}: ${body.slice(0, 300)}`, res.status, retryable,
+      lastErr = new HttpError(`HTTP ${res.status} from ${new URL(url).host}: ${errorBodySummary(body)}`, res.status, retryable,
         Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter * 1000 : undefined);
       if (!retryable) throw lastErr;
     } catch (e) {

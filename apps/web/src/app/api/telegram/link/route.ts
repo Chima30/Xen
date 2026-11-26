@@ -1,4 +1,5 @@
-import { sha256Hex } from "@xen/core";
+import { sha256Hex, tgCall } from "@xen/core";
+import { serverEnv } from "@/lib/env";
 import { createAdminClient, createUserClient } from "@/lib/supabase/server";
 
 /**
@@ -22,5 +23,16 @@ export async function POST() {
   if (error) return Response.json({ error: "Could not create link code" }, { status: 500 });
   await admin.from("audit_logs").insert({ actor_user_id: data.user.id, actor: "user", action: "telegram.link_code_issued" });
 
-  return Response.json({ code, command: `/start ${code}`, expiresAt: expires.toISOString() });
+  // The bot's @username, for a one-tap t.me deep link. Optional: linking also works by typing the command.
+  let bot: string | null = null;
+  const token = serverEnv().TELEGRAM_BOT_TOKEN;
+  if (token) {
+    try {
+      bot = (await tgCall<{ username?: string }>(token, "getMe", {})).username ?? null;
+    } catch {
+      bot = null;
+    }
+  }
+
+  return Response.json({ code, command: `/start ${code}`, expiresAt: expires.toISOString(), bot });
 }

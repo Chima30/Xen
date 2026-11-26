@@ -322,13 +322,22 @@ export async function runTick(d: PipelineDeps, opts: { maxSources?: number; maxJ
   // 2. Drain jobs while request budget remains (each job needs a few requests).
   const maxJobs = opts.maxJobs ?? d.env.PIPELINE_MAX_ITEMS_PER_RUN;
   const minRemaining = opts.minRemainingRequests ?? 12;
+  // Fairness: the first slot of each tick goes to a pending collect job, so a steady stream of
+  // higher-priority analyze jobs can never starve source collection.
+  let collectFirst = maxJobs > 1 && (!opts.kinds || opts.kinds.includes('collect'));
   while (stats.jobsRun + stats.jobsFailed < maxJobs && d.budget.remaining > minRemaining) {
-    const [job] = await repo.lease(d.workerId, 1, 120, opts.kinds);
+    let job: Job | undefined;
+    if (collectFirst) {
+      collectFirst = false;
+      [job] = await repo.lease(d.workerId, 1, 120, ['collect']);
+    }
+    job ??= (await repo.lease(d.workerId, 1, 120, opts.kinds))[0];
     if (!job) break;
     try {
       await runJob(d, job);
       await repo.complete(job.id);
       stats.jobsRun++;
+      if (job.kind === 'collect') stats.sourcesScanned++;
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       stats.jobsFailed++;

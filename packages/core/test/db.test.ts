@@ -125,6 +125,18 @@ describe('row level security', () => {
       await expect(as(null, () => db.query(`select * from ${t}`)), t).rejects.toThrow(/permission denied/);
     }
   });
+  it('users can edit their profile but not promote themselves to owner', async () => {
+    await as(A, () => db.exec(`update profiles set display_name = 'A' where id = '${A}'`));
+    await expect(as(A, () => db.exec(`update profiles set role = 'owner' where id = '${A}'`))).rejects.toThrow(/permission denied/);
+    const r = await as(A, () => db.query<{ owner: boolean }>(`select is_owner() as owner`));
+    expect(r.rows[0]!.owner).toBe(false);
+  });
+  it('saved filters are private to their owner', async () => {
+    await as(A, () => db.exec(`insert into saved_filters (user_id, name, query) values ('${A}', 'zero capital', 'capital=none')`));
+    const b = await as(B, () => db.query(`select * from saved_filters`));
+    expect(b.rows).toHaveLength(0);
+    await expect(as(B, () => db.exec(`insert into saved_filters (user_id, name, query) values ('${A}', 'x', 'y')`))).rejects.toThrow();
+  });
   it('signed-in users can read shared tables (grants from migration 0004)', async () => {
     const r = await as(A, () => db.query<{ n: number }>(`select count(*)::int n from opportunities`));
     expect(r.rows[0]!.n).toBeGreaterThanOrEqual(0);

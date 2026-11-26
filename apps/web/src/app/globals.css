@@ -1,57 +1,146 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-/* XEN design tokens — graphite surfaces, cool neutrals, teal accent. */
+/* Dark mode is class-based (next-themes sets .dark on <html>; default follows the OS). */
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * XEN design tokens: graphite surfaces, cool neutrals, one teal accent (--primary).
+ * shadcn/ui token names are used throughout; --ok / --warn add status colors.
+ */
 :root {
-  --bg: #f6f7f8;
-  --surface: #ffffff;
-  --surface-2: #eef0f2;
-  --border: #dde1e5;
-  --text: #15191d;
-  --text-muted: #5b646d;
-  --accent: #0f8a85;
-  --accent-contrast: #ffffff;
-  --ok: #1f7a4d;
-  --warn: #9a6700;
-  --danger: #b42318;
+  --radius: 0.5rem;
+  --background: oklch(0.985 0.002 240);
+  --foreground: oklch(0.21 0.012 240);
+  --card: oklch(1 0 0);
+  --card-foreground: var(--foreground);
+  --popover: oklch(1 0 0);
+  --popover-foreground: var(--foreground);
+  --primary: oklch(0.55 0.1 186);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.955 0.004 240);
+  --secondary-foreground: var(--foreground);
+  --muted: oklch(0.955 0.004 240);
+  --muted-foreground: oklch(0.5 0.013 240);
+  --accent: oklch(0.948 0.006 220);
+  --accent-foreground: var(--foreground);
+  --destructive: oklch(0.55 0.2 27);
+  --ok: oklch(0.52 0.12 155);
+  --warn: oklch(0.6 0.13 70);
+  --border: oklch(0.905 0.005 240);
+  --input: oklch(0.885 0.006 240);
+  --ring: oklch(0.55 0.1 186);
+  --chart-1: oklch(0.58 0.115 178); /* validated: chroma >= 0.1, contrast >= 3:1 on light surface */
+  --chart-2: oklch(0.6 0.08 230);
+  --chart-3: oklch(0.7 0.05 200);
+  --chart-4: oklch(0.5 0.02 240);
+  --chart-5: oklch(0.75 0.02 240);
+  --sidebar: oklch(0.97 0.003 240);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: oklch(0.935 0.006 230);
+  --sidebar-accent-foreground: var(--foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0f1214;
-    --surface: #161a1d;
-    --surface-2: #1d2226;
-    --border: #2a3035;
-    --text: #e6e9eb;
-    --text-muted: #8d969e;
-    --accent: #2dd4c7;
-    --accent-contrast: #062a28;
-    --ok: #4ade80;
-    --warn: #fbbf24;
-    --danger: #f87171;
-  }
+.dark {
+  --background: oklch(0.165 0.006 240);
+  --foreground: oklch(0.935 0.004 240);
+  --card: oklch(0.198 0.007 240);
+  --card-foreground: var(--foreground);
+  --popover: oklch(0.215 0.008 240);
+  --popover-foreground: var(--foreground);
+  --primary: oklch(0.78 0.12 182);
+  --primary-foreground: oklch(0.21 0.04 186);
+  --secondary: oklch(0.245 0.008 240);
+  --secondary-foreground: var(--foreground);
+  --muted: oklch(0.245 0.008 240);
+  --muted-foreground: oklch(0.67 0.012 240);
+  --accent: oklch(0.265 0.01 230);
+  --accent-foreground: var(--foreground);
+  --destructive: oklch(0.7 0.17 22);
+  --ok: oklch(0.76 0.14 155);
+  --warn: oklch(0.8 0.13 80);
+  --border: oklch(1 0 0 / 9%);
+  --input: oklch(1 0 0 / 14%);
+  --ring: oklch(0.78 0.12 182);
+  --chart-1: oklch(0.66 0.11 184); /* validated against the dark card surface */
+  --chart-2: oklch(0.7 0.09 230);
+  --chart-3: oklch(0.6 0.06 200);
+  --chart-4: oklch(0.55 0.02 240);
+  --chart-5: oklch(0.42 0.02 240);
+  --sidebar: oklch(0.145 0.006 240);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: oklch(0.22 0.009 235);
+  --sidebar-accent-foreground: var(--foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
 }
 
 @theme inline {
-  --color-bg: var(--bg);
-  --color-surface: var(--surface);
-  --color-surface-2: var(--surface-2);
-  --color-border: var(--border);
-  --color-text: var(--text);
-  --color-muted: var(--text-muted);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+  --font-heading: var(--font-sans);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
-  --color-accent-contrast: var(--accent-contrast);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
   --color-ok: var(--ok);
   --color-warn: var(--warn);
-  --color-danger: var(--danger);
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-mono), ui-monospace, monospace;
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
 }
 
-body {
-  background: var(--bg);
-  color: var(--text);
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+    color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation: none !important; transition: none !important; }
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }

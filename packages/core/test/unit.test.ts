@@ -242,3 +242,31 @@ describe('env + quotas', () => {
     expect(() => b.take()).toThrow(/budget/);
   });
 });
+
+describe('scheduler fairness (runTick)', () => {
+  it('gives the first job slot of a tick to a pending collect job', async () => {
+    const { runTick, RequestBudget, loadServerEnv } = await import('../src');
+    const leaseCalls: (string[] | undefined)[] = [];
+    // Minimal stub: no due sources, an empty queue. Only the lease order matters here.
+    const chain: Record<string, unknown> = {};
+    for (const m of ['select', 'eq', 'lte', 'order', 'limit', 'update', 'in']) chain[m] = () => chain;
+    (chain as { then: unknown }).then = (res: (v: unknown) => void) => res({ data: [], error: null });
+    const repo = {
+      db: { from: () => chain },
+      enqueue: async () => undefined,
+      lease: async (_w: string, _n: number, _s: number, kinds?: string[]) => { leaseCalls.push(kinds); return []; },
+    };
+    const env = loadServerEnv({ SUPABASE_URL: 'https://x.supabase.co', SUPABASE_SERVICE_ROLE_KEY: 'test-service-role-key-000', GEMINI_API_KEY: 'test-gemini-key', CRON_SECRET: '0123456789abcdef0123' });
+    await runTick({ env, repo: repo as never, budget: new RequestBudget(100), workerId: 't' }, { maxJobs: 4 });
+    expect(leaseCalls[0]).toEqual(['collect']);
+    expect(leaseCalls[1]).toBeUndefined(); // then any kind, by priority
+  });
+});
+
+describe('http error messages', () => {
+  it('reduces HTML error pages to their title and keeps API error bodies', async () => {
+    const { errorBodySummary } = await import('../src/http');
+    expect(errorBodySummary('<!DOCTYPE html><html><head><title>Just a moment...</title></head><body>x</body></html>')).toBe('HTML page "Just a moment..."');
+    expect(errorBodySummary('{"error":{"message":"quota exceeded"}}')).toBe('{"error":{"message":"quota exceeded"}}');
+  });
+});
