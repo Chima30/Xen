@@ -7,8 +7,10 @@ import { publicSupabaseEnv } from "./public-env";
 
 /** Per-request client acting as the signed-in user (RLS applies). */
 export async function createUserClient() {
-  const { url, anonKey } = publicSupabaseEnv();
+  // Read cookies first: it marks the caller as request-time, so the build never
+  // prerenders past this point and missing env vars only fail real requests.
   const store = await cookies();
+  const { url, anonKey } = publicSupabaseEnv();
   return createServerClient(url, anonKey, {
     cookies: {
       getAll: () => store.getAll(),
