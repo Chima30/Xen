@@ -11,12 +11,13 @@ Status words mean exactly this:
 | Tavily Search | **Live-verified 2026-11-26** (milestone: 3 real searches) | API key | Rotating query library, 24h cache, daily budget |
 | Gemini (structured output) | **Live-verified 2026-11-26** (`gemini-3.5-flash-lite`, 11 opportunities extracted) | API key | `responseMimeType` + `responseJsonSchema`; output re-validated with Zod |
 | Supabase (Postgres, Auth) | **Live-verified 2026-11-26** | Service role + anon key | Migrations 0001–0005 applied; RLS verified (anon blocked); password sign-in on Vercel |
+| Cloudflare Worker (crons + webhook) | **Live-verified 2026-11-26** | Wrangler OAuth | Deployed with 5 crons; `/run` tick forwarded to Vercel `/api/pipeline/tick` and completed; wrong secrets rejected (403) |
 | Gemini Google Search grounding | Disabled | — | Not on the free tier for Gemini 3.x |
 | RSS / Atom (blogs, Medium `/feed/@user`, Mirror, Substack) | Implemented | Public | Cursor = newest published date |
 | Reddit public JSON | Implemented | Public | Descriptive User-Agent; low frequency |
 | GitHub releases | Implemented | Optional token | 60 req/h unauthenticated |
 | DefiLlama protocols | Implemented, **paused by default** | Public | The response is several MB, too heavy for the Workers Free CPU limit; run it from the Vercel runner |
-| Telegram Bot API | **Live-verified 2026-11-26 for alerts** (2 real alerts sent, re-send suppressed). Webhook/commands: not yet verified (webhook not registered) | Bot token | Webhook with secret header, idempotent updates |
+| Telegram Bot API | **Live-verified 2026-11-26**: alerts (2 sent, re-send suppressed) and webhook commands (`/status` answered via the Cloudflare Worker) | Bot token | Webhook with secret header, idempotent updates |
 | Telegram channels (reading) | Unsupported | — | Bots only see channels where they are an admin |
 | Discord | Unsupported (not yet implemented) | Bot token + invite | Requires the bot to be invited with read permission |
 | X | Unsupported | Paid API | Optional; feature flag off |
