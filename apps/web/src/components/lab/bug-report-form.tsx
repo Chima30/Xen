@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createClient } from "@/lib/supabase/client";
 import { analyzeScreenshotsAction, generateBugReportAction, saveBugReport } from "@/lib/xen/lab-actions";
-import { area, CopyButton, DownloadButton, slugify } from "./lab-ui";
+import { CopyButton, DownloadButton } from "./lab-ui";
+import { area, slugify } from "./lab-utils";
 
 type Shot = { path: string; name: string; preview: string };
 
@@ -135,7 +136,7 @@ export function BugReportForm({ userId }: { userId: string }) {
                 </ul>
               ) : <p className="text-muted-foreground">Nothing notable was visible.</p>}
               {analysis.visibleText.length > 0 && <p className="text-xs text-muted-foreground">Text shown: {analysis.visibleText.map((t) => `“${t}”`).join(", ")}</p>}
-              {analysis.unclear && <p className="text-xs text-warn">{analysis.unclear}</p>}
+              {analysis.unclear && !/^(not provided|none|n\/a)\.?$/i.test(analysis.unclear.trim()) && <p className="text-xs text-warn">{analysis.unclear}</p>}
               <p className="text-xs text-muted-foreground">Tick the observations you confirm; only those go into the report.</p>
             </div>
           )}

@@ -8,9 +8,9 @@ import { PLATFORM_TYPES, TEST_AREAS } from "@xen/core/lab-constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createTestPlan } from "@/lib/xen/lab-actions";
-import { area, field } from "./lab-ui";
+import { area, field } from "./lab-utils";
 
-const label = (s: string) => s.replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase());
+const label = (s: string) => s.replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase()).replace(/^Dex$/, "DEX").replace(/^Nft /, "NFT ");
 
 export function TestPlanForm() {
   const router = useRouter();

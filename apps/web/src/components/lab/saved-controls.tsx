@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { setTestResult, updateBugReport, updateFeedbackStatus } from "@/lib/xen/lab-actions";
 import { cn } from "@/lib/utils";
-import { field } from "./lab-ui";
+import { field } from "./lab-utils";
 
 export function BugStatus({ id, status, submittedUrl }: { id: string; status: string; submittedUrl: string | null }) {
   const [url, setUrl] = useState(submittedUrl ?? "");

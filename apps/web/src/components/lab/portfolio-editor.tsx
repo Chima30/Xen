@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { savePortfolio } from "@/lib/xen/lab-actions";
 import type { PortfolioEntry } from "@/lib/xen/lab-queries";
-import { area, field } from "./lab-ui";
+import { area, field } from "./lab-utils";
 
 /** Headline, summary and entries you add yourself. Entries from XEN work are shown separately. */
 export function PortfolioEditor({ headline: h0, summary: s0, manual }: { headline: string; summary: string; manual: PortfolioEntry[] }) {

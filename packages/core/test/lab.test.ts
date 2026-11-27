@@ -69,7 +69,7 @@ describe('lab: test cases and feedback', () => {
       { area: 'order_placement', title: 'Not requested', preconditions: '', steps: ['x'], expected: 'y', priority: 'low' },
     ] });
     const cases = await generateTestCases(env, repo(), { platformType: 'dex', areas: ['wallet_connection'], productNotes: '' });
-    expect(cases.map((c) => c.area)).toEqual(['wallet_connection']);
+    expect(cases.map((c) => c.title)).toEqual(['Connect with an injected wallet']); // other areas and cases with nothing to check are dropped
   });
 
   it('needs real observations before drafting feedback', async () => {

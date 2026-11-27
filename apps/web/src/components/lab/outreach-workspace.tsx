@@ -7,7 +7,8 @@ import { OFFER_TYPES, OUTREACH_CHANNELS } from "@xen/core/lab-constants";
 import { Button } from "@/components/ui/button";
 import { draftOutreachAction, saveOutreach, updateOutreach } from "@/lib/xen/lab-actions";
 import { cn } from "@/lib/utils";
-import { area, CopyButton, field } from "./lab-ui";
+import { CopyButton } from "./lab-ui";
+import { area, field } from "./lab-utils";
 
 const label = (s: string) => s.replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase()).replace(/^Ux /, "UX ").replace(/^Qa$/, "QA").replace(/^X$/, "X (DM)");
 
