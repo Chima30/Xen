@@ -27,3 +27,7 @@ Status words mean exactly this:
 ## Adding an adapter
 
 Implement `SourceAdapter` in `packages/core/src/adapters`. It has `id`, `requires`, and `fetch(config, ctx, cursor)`, which returns `{ items, cursor }`. Register it in `ADAPTERS`, add a row to `source_adapters`, and create `sources` rows that point at it. Retries, timeouts, health records and backoff for failing sources are handled by the pipeline.
+
+## XEN Lab (Phase 6)
+
+Uses the same Gemini key and daily budget as the pipeline (`BUDGET_GEMINI_DAILY`); each generate, analyze or draft action is one call. Live-verified 2026-11-27: bug report generation, screenshot analysis (private `evidence` bucket, owner folder only), test plan generation, feedback and outreach drafts. XEN never sends outreach; the user copies and sends each message.
