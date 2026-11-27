@@ -12,6 +12,7 @@ import { verifyOpportunity } from '../verification';
 import { Repo, type Job } from './repo';
 import { notifyWatchers, recordAnnouncementChange, recordSignals, upsertProjectProfile } from '../intelligence/projects';
 import { alternativesQuery } from '../intelligence/similar';
+import { loadOwnerProfile } from '../personal';
 
 /**
  * Pipeline:
@@ -321,6 +322,8 @@ export interface TickStats { sourcesScanned: number; jobsRun: number; jobsFailed
 export async function runTick(d: PipelineDeps, opts: { maxSources?: number; maxJobs?: number; kinds?: string[]; minRemainingRequests?: number } = {}): Promise<TickStats> {
   const stats: TickStats = { sourcesScanned: 0, jobsRun: 0, jobsFailed: 0, errors: [], requestsUsed: 0 };
   const { repo } = d;
+  // Personalization: score and alert against the owner's saved profile, not the built-in default.
+  if (!d.profile) d = { ...d, profile: await loadOwnerProfile(repo.db).catch(() => DEFAULT_PROFILE) };
 
   // 1. Enqueue due sources as collect jobs (idempotent per scheduled slot).
   const due = await repo.db.from('sources').select('id, scan_interval_minutes, next_scan_at').eq('status', 'active').lte('next_scan_at', new Date().toISOString()).order('priority', { ascending: false }).limit(opts.maxSources ?? 3);

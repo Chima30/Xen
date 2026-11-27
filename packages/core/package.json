@@ -7,7 +7,8 @@
   "types": "src/index.ts",
   "exports": {
     ".": "./src/index.ts",
-    "./lab-constants": "./src/lab/constants.ts"
+    "./lab-constants": "./src/lab/constants.ts",
+    "./personal-constants": "./src/personal/constants.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

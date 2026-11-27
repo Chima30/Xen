@@ -43,7 +43,7 @@ export interface ScoreResult { score: number; priority: 'high' | 'investigate' |
 const STABLE = /^(usdc|usdt|usd|dai|usde|\$)$/i;
 
 export function scoreOpportunity(i: ScoreInput): ScoreResult {
-  const w = i.weights ?? DEFAULT_WEIGHTS;
+  const w = i.weights ?? i.profile.scoreWeights ?? DEFAULT_WEIGHTS;
   const x = i.extracted;
   const now = i.now ?? new Date();
   const factors: ScoreFactor[] = [];

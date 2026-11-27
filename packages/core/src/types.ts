@@ -94,6 +94,8 @@ export interface UserProfile {
   dailyMinutes: number;
   riskTolerance: 'low' | 'medium' | 'high';
   minRewardUsd?: number | null;
+  /** Your own score weights from Settings, when saved. */
+  scoreWeights?: { reward_certainty: number; credibility: number; zero_capital: number; reward_effort: number; eligibility: number; urgency: number };
 }
 
 export const DEFAULT_PROFILE: UserProfile = {

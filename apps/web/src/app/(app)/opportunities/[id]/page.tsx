@@ -5,12 +5,15 @@ import { Suspense } from "react";
 import { AlertTriangle, ArrowLeft, Check, CircleHelp, ExternalLink, X } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { personalFit } from "@xen/core";
+import { TrackButton } from "@/components/personal/track-button";
 import { AppliedButton, HideButton, SaveButton } from "@/components/xen/opportunity-actions";
 import { OpportunityTable } from "@/components/xen/opportunity-table";
 import { CapitalPill, Pill, RewardPill, Score, Section, VerifyMark } from "@/components/xen/status";
 import { cn } from "@/lib/utils";
 import { deadlineTone, formatDate, formatDateTime, formatMinutes, formatReward, relative } from "@/lib/xen/format";
 import { categoryLabel, PRIORITY, REWARD_STATUS, riskLabel } from "@/lib/xen/labels";
+import { getMyProfile } from "@/lib/xen/personal-queries";
 import { getOpportunity, type ScoreBreakdown } from "@/lib/xen/queries";
 import { requestNow } from "@/lib/xen/time";
 
@@ -66,7 +69,7 @@ async function Detail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   if (!UUID.test(id)) notFound();
   const now = await requestNow();
-  const data = await getOpportunity(id);
+  const [data, me] = await Promise.all([getOpportunity(id), getMyProfile()]);
   if (!data) notFound();
   const { o, evidence, verifications, project, saved, hidden, application, related, relatedBy } = data;
   const sb = (o.score_breakdown ?? {}) as ScoreBreakdown;
@@ -75,6 +78,7 @@ async function Detail({ params }: { params: Promise<{ id: string }> }) {
   const checks = (latest?.checks ?? []) as Check[];
   const dTone = deadlineTone(o.deadline_at, now);
   const priority = sb.priority ? PRIORITY[sb.priority] : null;
+  const fit = personalFit({ ...data.o, risk_flags: data.o.risk_flags as string[] }, me.profile);
   const isRisky = o.verification === "suspicious" || (o.risk_flags as string[]).length > 0;
 
   return (
@@ -97,6 +101,7 @@ async function Detail({ params }: { params: Promise<{ id: string }> }) {
           </div>
           <div className="flex flex-wrap gap-2 pt-1">
             <SaveButton id={o.id} saved={saved} variant="full" />
+            <TrackButton id={o.id} tracked={!!application} />
             <AppliedButton id={o.id} status={application?.status ?? null} />
             <HideButton id={o.id} hidden={hidden} />
             {o.application_url && !isRisky && (
@@ -188,6 +193,12 @@ async function Detail({ params }: { params: Promise<{ id: string }> }) {
         </div>
 
         <div className="space-y-4">
+          <Section title="Fit for you" description="From your profile and preferences in Settings">
+            {fit.blocked && <p className="mb-3 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">{fit.blocked}</p>}
+            {fit.reasons.length > 0 && <ul className="space-y-1 text-sm">{fit.reasons.map((x) => <li key={x} className="flex gap-2"><span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-ok" aria-hidden />{x}</li>)}</ul>}
+            {fit.cautions.length > 0 && <ul className={cn("space-y-1 text-sm text-muted-foreground", fit.reasons.length > 0 && "mt-3")}>{fit.cautions.map((x) => <li key={x} className="flex gap-2"><span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-warn" aria-hidden />{x}</li>)}</ul>}
+          </Section>
+
           <Section title="Key dates">
             <dl className="space-y-3 text-sm">
               <Item label="Deadline">
@@ -200,7 +211,7 @@ async function Detail({ params }: { params: Promise<{ id: string }> }) {
             </dl>
           </Section>
 
-          <Section title="Score breakdown" description={sb.capped ? `Capped: ${sb.capped.replaceAll("_", " ")}` : "Weighted for a zero-capital profile in Nigeria"}>
+          <Section title="Score breakdown" description={sb.capped ? `Capped: ${sb.capped.replaceAll("_", " ")}` : "Weighted for your profile when XEN scored it"}>
             <ul className="space-y-3">
               {(sb.factors ?? []).map((f) => (
                 <li key={f.key} className="text-sm">

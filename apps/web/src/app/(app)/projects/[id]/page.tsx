@@ -11,6 +11,7 @@ import { EmptyState, Pill, Section } from "@/components/xen/status";
 import { AlternativesButton, WatchToggle, WatchTypesEditor } from "@/components/xen/watch-controls";
 import { formatDateTime, relative } from "@/lib/xen/format";
 import { getProject } from "@/lib/xen/intel-queries";
+import { getReliability } from "@/lib/xen/personal-queries";
 import { requestNow } from "@/lib/xen/time";
 
 export const metadata: Metadata = { title: "Project" };
@@ -35,7 +36,7 @@ async function Project({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   if (!UUID.test(id)) notFound();
   const now = await requestNow();
-  const d = await getProject(id);
+  const [d, payments] = await Promise.all([getProject(id), getReliability([id])]);
   if (!d) notFound();
   const { project: p, signals, opportunities, changes, watch, similar, sources, user } = d;
   const funding = p.funding as { funding_amount_usd?: number | null; funding_round?: string | null; investors?: string[]; source_url?: string; excerpt?: string; observed_at?: string; verified?: boolean } | null;
@@ -107,6 +108,25 @@ async function Project({ params }: { params: Promise<{ id: string }> }) {
         </div>
 
         <div className="space-y-4">
+          <Section title="Payment record" description="Verified evidence only sets the label; community reports are listed apart">
+            {payments.summary.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No payment evidence for this project yet.</p>
+            ) : (
+              <div className="space-y-3 text-sm">
+                <Pill tone={payments.summary[0].tone === "good" ? "ok" : payments.summary[0].tone === "bad" ? "danger" : payments.summary[0].tone === "mixed" ? "warn" : "neutral"}>{payments.summary[0].label}</Pill>
+                <ul className="space-y-2">
+                  {payments.rows.slice(0, 6).map((r, i) => (
+                    <li key={i} className="text-xs text-muted-foreground">
+                      <span className="text-foreground">{r.evidence_type === "community_allegation" ? "Community report (unverified)" : r.evidence_type === "verified_user_payment" ? "Your payment record" : r.evidence_type === "official_announcement" ? "Official announcement" : "Public evidence"}</span>
+                      {" · "}{r.outcome.replaceAll("_", " ")}{r.details ? ` · ${r.details}` : ""}
+                      {r.source_url && <> · <a href={r.source_url} target="_blank" rel="noopener noreferrer nofollow" className="underline hover:text-foreground">source</a></>}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </Section>
+
           <Section title="Funding" description="Only when stated in a source and quoted">
             {funding?.verified !== false && funding?.source_url ? (
               <dl className="space-y-2 text-sm">

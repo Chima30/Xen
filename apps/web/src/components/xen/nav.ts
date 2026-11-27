@@ -1,12 +1,12 @@
 import {
   Activity, Binoculars, Bookmark, Bug, Building2, CandlestickChart, Code2, Compass, Eye, FlaskConical, Gauge, Landmark, Network, Radar,
-  FlaskRound, Send, Settings, Sprout, Trophy, Vote, type LucideIcon,
+  FlaskRound, Send, Settings, Sprout, Trophy, Vote, CalendarDays, ListChecks, KanbanSquare, Sun, Wallet, type LucideIcon,
 } from "lucide-react";
 
 export type NavItem = { href: string; label: string; icon: LucideIcon; keywords?: string };
 export type NavGroup = { label: string; items: NavItem[] };
 
-/** Only pages that exist. Phase 7 adds Tasks, Applications, Calendar and Earnings. */
+/** Only pages that exist. */
 export const NAV: NavGroup[] = [
   {
     label: "Intelligence",
@@ -46,6 +46,11 @@ export const NAV: NavGroup[] = [
   {
     label: "Personal",
     items: [
+      { href: "/today", label: "Today", icon: Sun, keywords: "daily action plan priorities what to do" },
+      { href: "/tasks", label: "My Tasks", icon: ListChecks, keywords: "todo reminders" },
+      { href: "/applications", label: "Applications", icon: KanbanSquare, keywords: "kanban tracking applied submitted status" },
+      { href: "/calendar", label: "Calendar", icon: CalendarDays, keywords: "deadlines follow-ups schedule" },
+      { href: "/earnings", label: "Earnings", icon: Wallet, keywords: "payments income paid reliability" },
       { href: "/watchlist", label: "Watchlist", icon: Eye, keywords: "watch monitor projects alerts" },
       { href: "/saved", label: "Saved", icon: Bookmark, keywords: "bookmarks hidden" },
     ],

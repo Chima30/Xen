@@ -66,9 +66,9 @@ async function Overview() {
         <Section title="Discovery activity" description="Opportunities stored per day, Lagos time" className="lg:col-span-2">
           <DiscoveryChart data={d.perDay} />
         </Section>
-        <Section title="Earnings" description="Received and pending are kept apart">
+        <Section title="Earnings" description="Received and pending are kept apart" actions={<Link href="/earnings" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">Open <ArrowRight className="size-3" /></Link>}>
           {d.pending.count + d.received.count === 0 ? (
-            <p className="text-sm text-muted-foreground">No payments recorded yet. Speculative rewards are never counted as earnings; tracking arrives in Phase 7.</p>
+            <p className="text-sm text-muted-foreground">No payments recorded yet. Speculative rewards are never counted as earnings. <Link href="/earnings" className="underline hover:text-foreground">Record a payment</Link></p>
           ) : (
             <dl className="space-y-3 text-sm">
               <div>
