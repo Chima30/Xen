@@ -31,3 +31,7 @@ Implement `SourceAdapter` in `packages/core/src/adapters`. It has `id`, `require
 ## XEN Lab (Phase 6)
 
 Uses the same Gemini key and daily budget as the pipeline (`BUDGET_GEMINI_DAILY`); each generate, analyze or draft action is one call. Live-verified 2026-11-27: bug report generation, screenshot analysis (private `evidence` bucket, owner folder only), test plan generation, feedback and outreach drafts. XEN never sends outreach; the user copies and sends each message.
+
+## Personal management (Phase 7)
+
+No external services. Today, Tasks, Applications, Calendar and Earnings read and write the user's own rows (RLS). The daily plan is rule-based (no AI calls) and is empty when nothing qualifies. Task reminders use the existing `reminders` table and Telegram delivery job. Payment reliability labels come only from verified evidence: a user's received payment with a transaction hash or evidence link, or owner-added public evidence and official announcements with a source link; community reports are counted separately. The pipeline now scores against the owner account's saved profile and preferences. Browser-verified 2026-11-27 against the live database; test rows deleted afterwards.
