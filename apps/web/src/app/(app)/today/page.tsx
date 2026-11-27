@@ -40,6 +40,7 @@ async function Plan({ searchParams }: { searchParams: PageProps<"/today">["searc
         <MinutesControl minutes={budget} saved={savedMinutes} />
         <p className="text-sm text-muted-foreground">
           Planned <span className="font-mono tabular-nums text-foreground">{formatMinutes(plan.plannedMinutes) ?? "0 min"}</span> of {formatMinutes(budget) ?? "0 min"}
+          {plan.plannedMinutes > budget && <> · must-do items run over your time</>}
           {plan.unknownEffort > 0 && <> · {plan.unknownEffort} item{plan.unknownEffort === 1 ? "" : "s"} with no stated effort, counted as 30 min</>}
         </p>
       </div>
@@ -90,7 +91,7 @@ function PlanRow({ item: i, n, timeZone }: { item: PlanItem; n: number; timeZone
       </div>
       {(i.instructions || i.project || i.sourceUrl) && (
         <div className="mt-3 space-y-1 border-t pt-3 text-xs text-muted-foreground">
-          {i.project && <p>Project: <span className="text-foreground">{i.project}</span></p>}
+          {i.project && <p>{i.kind === "task" ? "For" : "Project"}: <span className="text-foreground">{i.project}</span></p>}
           {i.instructions && <p className="line-clamp-3">How to take part: {i.instructions}</p>}
           {i.sourceUrl && (
             <a href={i.sourceUrl} target="_blank" rel="noopener noreferrer nofollow" className="inline-flex items-center gap-1 hover:text-foreground">

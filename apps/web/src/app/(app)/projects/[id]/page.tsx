@@ -117,7 +117,7 @@ async function Project({ params }: { params: Promise<{ id: string }> }) {
                 <ul className="space-y-2">
                   {payments.rows.slice(0, 6).map((r, i) => (
                     <li key={i} className="text-xs text-muted-foreground">
-                      <span className="text-foreground">{r.evidence_type === "community_allegation" ? "Community report (unverified)" : r.evidence_type === "verified_user_payment" ? "Your payment record" : r.evidence_type === "official_announcement" ? "Official announcement" : "Public evidence"}</span>
+                      <span className="text-foreground">{r.evidence_type === "community_allegation" ? "Community report (unverified)" : r.evidence_type === "verified_user_payment" ? "Paid-user record (with proof)" : r.evidence_type === "official_announcement" ? "Official announcement" : "Public evidence"}</span>
                       {" · "}{r.outcome.replaceAll("_", " ")}{r.details ? ` · ${r.details}` : ""}
                       {r.source_url && <> · <a href={r.source_url} target="_blank" rel="noopener noreferrer nofollow" className="underline hover:text-foreground">source</a></>}
                     </li>

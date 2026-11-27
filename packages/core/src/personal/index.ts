@@ -384,7 +384,7 @@ export function paymentReliability(rows: PaymentEvidence[]): Reliability[] {
     const v = x.verified;
     const paid = v.paid_on_time + v.paid + v.paid_late;
     if (v.total === 0) { x.label = 'No verified payment record'; x.tone = 'none'; }
-    else if (v.unpaid === 0 && v.partial === 0 && v.paid_late === 0) { x.label = `Paid in all ${v.total} verified record${v.total === 1 ? '' : 's'}`; x.tone = 'good'; }
+    else if (v.unpaid === 0 && v.partial === 0 && v.paid_late === 0) { x.label = v.total === 1 ? 'Paid in its 1 verified record' : `Paid in all ${v.total} verified records`; x.tone = 'good'; }
     else if (paid === 0) { x.label = `No verified payment in ${v.total} record${v.total === 1 ? '' : 's'}`; x.tone = 'bad'; }
     else { x.label = `Mixed: ${paid} of ${v.total} verified records paid${v.paid_late ? `, ${v.paid_late} late` : ''}`; x.tone = 'mixed'; }
   }

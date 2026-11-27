@@ -40,8 +40,8 @@ export function relative(iso: string | null | undefined, now: number) {
 export function formatMinutes(min: number | null) {
   if (min === null || min === undefined) return null;
   if (min < 60) return `${min} min`;
-  const h = min / 60;
-  return h < 24 ? `${nf.format(h)} h` : `${nf.format(h / 24)} days`;
+  if (min < 24 * 60) { const h = Math.floor(min / 60), m = Math.round(min % 60); return m ? `${h} h ${m} min` : `${h} h`; }
+  return `${nf.format(min / 1440)} days`;
 }
 
 export function deadlineTone(iso: string | null, now: number): "danger" | "warn" | "neutral" {

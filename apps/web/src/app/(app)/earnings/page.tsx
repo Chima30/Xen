@@ -60,7 +60,7 @@ async function Earnings({ searchParams }: { searchParams: PageProps<"/earnings">
       </p>
 
       <div className="grid gap-6 xl:grid-cols-[1fr_24rem]">
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
           <Section title="Received by month" description="USD value you entered; payments without one are counted but not summed">
             {s.byMonth.length === 0 ? <p className="text-sm text-muted-foreground">No received payments yet.</p> : (
               <ul className="space-y-2">
@@ -76,7 +76,7 @@ async function Earnings({ searchParams }: { searchParams: PageProps<"/earnings">
           </Section>
 
           <div className="grid gap-6 md:grid-cols-2">
-            {([["By category", s.byCategory, (k: string) => categoryLabel(k)], ["By project", s.byProject, (k: string) => k]] as const).map(([title, list, fmt]) => (
+            {([["By category", s.byCategory, (k: string) => (k === "uncategorised" ? "Uncategorised" : categoryLabel(k))], ["By project", s.byProject, (k: string) => k]] as const).map(([title, list, fmt]) => (
               <Section key={title} title={title} description="Received only">
                 {list.length === 0 ? <p className="text-sm text-muted-foreground">Nothing yet.</p> : (
                   <ul className="space-y-1.5 text-sm">
